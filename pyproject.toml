@@ -21,5 +21,5 @@ license = "Apache-2.0"
 license-files = ["LICEN[CS]E*"]
 
 [project.urls]
-Homepage = "https://github.com/*"
-Issues = "https://github.com/*/issues"
+Homepage = "https://github.com/ohjihw_merck/davotools"
+Issues = "https://github.com/ohjihw_merck/davotools/issues"

@@ -6,6 +6,10 @@ This package is intended to organize everyday tools (utility functions in Python
 
 ### Installation
 
+Please install with the following code.
+'''python
+pip install git@github.com:ohjihw_merck/davotools.git
+'''
 
 ### Usage
 
