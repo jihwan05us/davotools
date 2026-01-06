@@ -12,8 +12,43 @@ Please install with the following shell command to install the package from GitH
 pip install git@github.com:ohjihw_merck/davotools.git
 ```
 
+### Loading
+
+The package is created within a class structure.
+
+```python
+import davotools
+davotools = datovools.davotools()
+```
+
 ### Usage
 
+Here are headers of functions in davotools. Example codes will be updated soon.
+
+```python
+## to convert: from a geojson file path a numpy array (mask)
+davotools.convert.from_geojson_to_numpy(
+        path: str, # a path to geojson object
+        size: tuple[int, int] = None, # the size of a mask (vertical*horizontal)
+) -> np.ndarray[bool]:
+## to display: a list
+davotools.display.view_list(
+        l: list, # a list
+        k: str = None, # a keyword describing 'l'
+) -> None:
+## to display: a dict
+davotools.display.view_dict(
+        d: dict, # a dictionary
+        k: str = None, # a keyword describing 'd'
+        i: int = 0, # a layer index for checking depth
+) -> None:
+## to display: a pandas table
+davotools.display.view_pd(
+        table: pd.DataFrame, # a pandas table
+        k: str = None, # a keyword describing 'table'
+        iloc: list[int] = [0,1,-1], # a location index
+) -> None:
+```
 
 ### License
 

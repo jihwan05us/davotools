@@ -7,11 +7,14 @@ import pandas as pd
 ##
 from IPython.display import display as Id_display
 
+# %%
+##
+
 # %% [markdown]
 ## Body
 
 # %%
-## to display a list
+## to display: a list
 def view_list(
         l: list, # a list
         k: str = None, # a keyword describing 'l'
@@ -28,7 +31,7 @@ def view_list(
     return None
 
 # %%
-## to display a dict
+## to display: a dict
 def view_dict(
         d: dict, # a dictionary
         k: str = None, # a keyword describing 'd'
@@ -57,7 +60,7 @@ def view_dict(
     return None
 
 # %%
-## to display a pandas table
+## to display: a pandas table
 def view_pd(
         table: pd.DataFrame, # a pandas table
         k: str = None, # a keyword describing 'table'
