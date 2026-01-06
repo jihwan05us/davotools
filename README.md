@@ -23,31 +23,17 @@ davotools = datovools.davotools()
 
 ### Usage
 
-Here are headers of functions in davotools. Example codes will be updated soon.
+Here are headers of functions in davotools. Please check print(*.__doc__) for details.
 
 ```python
 ## to convert: from a geojson file path a numpy array (mask)
-davotools.convert.from_geojson_to_numpy(
-        path: str, # a path to geojson object
-        size: tuple[int, int] = None, # the size of a mask (vertical*horizontal)
-) -> np.ndarray[bool]:
+davotools.convert.from_geojson_to_numpy
 ## to display: a list
-davotools.display.view_list(
-        l: list, # a list
-        k: str = None, # a keyword describing 'l'
-) -> None:
+davotools.display.view_list
 ## to display: a dict
-davotools.display.view_dict(
-        d: dict, # a dictionary
-        k: str = None, # a keyword describing 'd'
-        i: int = 0, # a layer index for checking depth
-) -> None:
+davotools.display.view_dict
 ## to display: a pandas table
-davotools.display.view_pd(
-        table: pd.DataFrame, # a pandas table
-        k: str = None, # a keyword describing 'table'
-        iloc: list[int] = [0,1,-1], # a location index
-) -> None:
+davotools.display.view_pd
 ```
 
 ### License

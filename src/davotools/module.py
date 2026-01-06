@@ -22,8 +22,11 @@ def load_module_from_code(
         path: str, # a source code path of the module
 ) -> types.ModuleType:
     """
-    <return>
-    module: types.ModuleType
+    <input>
+        name: str, # the name of the module
+        path: str, # a source code path of the module
+    <output>
+        module: types.ModuleType
     """
     spec = importlib.util.spec_from_file_location( name, path )
     module = importlib.util.module_from_spec(spec)

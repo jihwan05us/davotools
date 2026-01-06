@@ -20,8 +20,11 @@ def view_list(
         k: str = None, # a keyword describing 'l'
 ) -> None:
     """
-    <return>
-    None
+    <input>
+        l: list, # a list
+        k: str = None, # a keyword describing 'l'
+    <output>
+        None
     """
     if k is not None:
         print(f"-. {k}")
@@ -38,8 +41,12 @@ def view_dict(
         i: int = 0, # a layer index for checking depth
 ) -> None:
     """
-    <return>
-    None
+    <input>
+        d: dict, # a dictionary
+        k: str = None, # a keyword describing 'd'
+        i: int = 0, # a layer index for checking depth
+    <output>
+        None
     """
     if i == 0:
         bullet = '-.'
@@ -67,8 +74,12 @@ def view_pd(
         iloc: list[int] = [0,1,-1], # a location index
 ) -> None:
     """
-    <return>
-    None
+    <input>
+        table: pd.DataFrame, # a pandas table
+        k: str = None, # a keyword describing 'table'
+        iloc: list[int] = [0,1,-1], # a location index
+    <output>
+        None
     """
     if k is None:
         k = 'table'

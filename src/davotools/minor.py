@@ -19,8 +19,12 @@ def update_dict(
         echo: bool = False,
 ) -> dict:
     """
-    <return>
-    output: dict # the updated dict
+    <input>
+        orig: dict, # the original dict to update
+        new: dict = None, # new dict to update
+        echo: bool = False,
+    <output>
+        dict # the updated dict
     """
     output = orig.copy()
     for k, v in new.items():

@@ -26,10 +26,12 @@ def from_geojson_to_shapely(
         G, # a geojson object imported by >> G = geojson.load( open(path) )
 ) -> tuple[ pd.DataFrame, dict, dict[ int, np.ndarray ] ]:
     """
-    <return>
-    info: pd.DataFrame, # information of every annotation
-    shapes: dict # shapely objects of every annotation
-    coords: dict[ int, np.ndarray ] # coordinates of every annotation
+    <input>
+        G, # a geojson object imported by >> G = geojson.load( open(path) )
+    <output>
+        info: pd.DataFrame, # information of every annotation
+        shapes: dict # shapely objects of every annotation
+        coords: dict[ int, np.ndarray ] # coordinates of every annotation
     """
     info = pd.DataFrame( columns=[
         'feat_index', 'feat_type', 'feat_id',
@@ -93,8 +95,12 @@ def from_shapely_to_numpy(
         coords: dict[int, np.ndarray], # output from convert_geojson_shapely
 ) -> np.ndarray[bool]:
     """
-    <return>
-    mask: np.ndarray[bool] # binary mask of the roi
+    <input>
+        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
+        info: pd.DataFrame, # output from convert_geojson_shapely
+        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+    <output>
+        mask: np.ndarray[bool] # binary mask of the roi
     """
     mask = np.full(size, False)
     ##
@@ -121,8 +127,11 @@ def from_geojson_to_numpy(
         size: tuple[int, int] = None, # the size of a mask (vertical*horizontal)
 ) -> np.ndarray[bool]:
     """
-    <return>
-    mask: np.ndarray[bool] # binary mask of the roi
+    <input>
+        path: str, # a path to geojson object
+        size: tuple[int, int] = None, # the size of a mask (vertical*horizontal)
+    <output>
+        mask: np.ndarray[bool] # binary mask of the roi
     """
     G = geojson.load( open(path) )
     ##
