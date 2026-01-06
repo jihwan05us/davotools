@@ -15,14 +15,13 @@ import os
 ## main class
 class davotools:
     ##
-    module_path = os.path.abspath(__file__)
-    module_dir = os.path.dirname(module_path)
-    ##
     def __init__(self) -> None:
         """
         <return>
         None
         """
+        module_path = os.path.abspath(__file__)
+        module_dir = os.path.dirname(module_path)
         print(f"-. davotools located at {module_dir}")
         print( "* davotools loading started..." )
         ##
