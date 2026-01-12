@@ -60,7 +60,7 @@ def from_geojson_to_shapely(
                 else None )
         ##
         info_new = {}
-        info_new['feat_index'] = feat_index
+        info_new['feat_index'] = feat_index + 1
         info_new['feat_type'] = feat_type
         info_new['feat_id'] = feat_id
         info_new['geo_type'] = geo_type
@@ -102,9 +102,9 @@ def from_shapely_to_numpy(
     <output>
         mask: np.ndarray[bool] # binary mask of the roi
     """
-    mask = np.full(size, False)
+    mask = np.full( size, 0, dtype=int )
     ##
-    for i, _ in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
+    for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
         coord = coords[i]
         ( h, v ) = skimage.draw.polygon( coord[:,0], coord[:,1] )
         ##
@@ -116,7 +116,7 @@ def from_shapely_to_numpy(
                 continue
             if ( hh < 0 ) or ( hh >= mask.shape[1] ):
                 continue
-            mask[ vv, hh ] = True
+            mask[ vv, hh ] = info_row['feat_index']
     ##
     return mask
 
@@ -125,12 +125,13 @@ def from_shapely_to_numpy(
 def from_geojson_to_numpy(
         path: str, # a path to geojson object
         size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
-) -> np.ndarray[bool]:
+) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
     """
     <input>
         path: str, # a path to geojson object
         size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
     <output>
+        info: pd.DataFrame, # information of every annotation
         mask: np.ndarray[bool] # a binary mask
     """
     G = geojson.load( open(path) )
