@@ -2,14 +2,16 @@
 
 ### Purpose
 
-This package is intended to organize everyday tools (utility functions in Python) of Jihwan Oh ('DavoLatte' is his WoW character name).
+This package is intended to organize everyday tools (utility functions in Python),
+mostly for digital pathology research projects,
+of Jihwan Oh ('DavoLatte' is his WoW character name).
 
 ### Installation
 
 Please install with the following shell command to install the package from GitHub.
 
 ```bash
-pip install git@github.com:ohjihw_merck/davotools.git
+pip install git+https://github.com/ohjihw_merck/davotools.git
 ```
 
 ### Loading
@@ -23,17 +25,20 @@ davotools = datovools.davotools()
 
 ### Usage
 
-Here are headers of functions in davotools. Please check print(*.__doc__) for details.
+Here are a list of functions in the package.
+Please check docstrings (`print(*.__doc__)`) for details.
 
 ```python
-## to convert: from a geojson file path a numpy array (mask)
-davotools.convert.from_geojson_to_numpy
-## to display: a list
+## to display
 davotools.display.view_list
-## to display: a dict
 davotools.display.view_dict
-## to display: a pandas table
 davotools.display.view_pd
+
+## to convert
+davotools.convert.from_geojson_to_numpy
+
+## to generate
+davotools.generate.patch_coords
 ```
 
 ### License

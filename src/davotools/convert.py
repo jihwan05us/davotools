@@ -124,21 +124,21 @@ def from_shapely_to_numpy(
 ## to convert: from a geojson file path a numpy array (mask)
 def from_geojson_to_numpy(
         path: str, # a path to geojson object
-        size: tuple[int, int] = None, # the size of a mask (vertical*horizontal)
+        size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
 ) -> np.ndarray[bool]:
     """
     <input>
         path: str, # a path to geojson object
-        size: tuple[int, int] = None, # the size of a mask (vertical*horizontal)
+        size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
     <output>
-        mask: np.ndarray[bool] # binary mask of the roi
+        mask: np.ndarray[bool] # a binary mask
     """
     G = geojson.load( open(path) )
     ##
     info, _, coords = from_geojson_to_shapely(G)
     mask = from_shapely_to_numpy(size, info, coords)
     ##
-    return mask
+    return info, mask
 
 # %%
 ##

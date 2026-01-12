@@ -25,14 +25,17 @@ class davotools:
         print(f"-. davotools located at {module_dir}")
         print( "* davotools loading started..." )
         ##
+        from davotools import module
+        self.module = module
+        ##
         from davotools import display
         self.display = display
         ##
         from davotools import convert
         self.convert = convert
         ##
-        from davotools import module
-        self.module = module
+        from davotools import generate
+        self.generate = generate
         ##
         from davotools import minor
         self.minor = minor
