@@ -40,6 +40,9 @@ class davotools:
         from davotools import CLI
         self.CLI = CLI
         ##
+        from davotools import io
+        self.io = io
+        ##
         from davotools import convert
         self.convert = convert
         ##

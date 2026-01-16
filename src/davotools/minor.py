@@ -16,7 +16,7 @@ import datetime
 def update_dict(
         orig: dict, # the original dict to update
         new: dict = None, # new dict to update
-        echo: bool = False,
+        echo: bool = False # a checker: whether to visualize details
 ) -> dict:
     """
     a function to update values of a dictionary
@@ -36,15 +36,23 @@ def update_dict(
     return updated
 
 # %%
+##
+
+# %% [markdown]
+## Body: time
+
+# %%
 ## to keep a track of time
 def time_keep(
         time_start: datetime = None, # the starting time if time spent is needed
+        echo: bool = False # a checker: whether to visualize details
 ) -> datetime:
     ##
     """
     a function to keep a track of time
     <input>
         time_start: datetime = None, # the starting time
+        echo: bool = False # a checker: whether to visualize details
     <output>
         time_return: datetime
             (1) if time_start is None, then the time_start is returned.
@@ -53,15 +61,18 @@ def time_keep(
     if time_start is None:
         time_start = datetime.datetime.now()
         time_start_form = time_format(time_start)
-        print( f"-. Time (start): {time_start_form}" )
+        if echo:
+            print( f"-. Time (start): {time_start_form}" )
         time_return = time_start
     else:
         time_end = datetime.datetime.now()
         time_end_form = time_format(time_end)
-        print( f"-. Time (end): {time_end_form}" )
+        if echo:
+            print( f"-. Time (end): {time_end_form}" )
         ##
         time_spent = time_end - time_start
-        print( f"-. Time (spent): { str(time_spent) }" )
+        if echo:
+            print( f"-. Time (spent): { str(time_spent) }" )
         time_return = time_end
     ##
     return time_return
@@ -80,8 +91,10 @@ def time_format(
         time_form: str # the time in str (%Y-%m-%d %H:%M:%S)
     """
     time_form = time.strftime("%Y-%m-%d %H:%M:%S")
-    return time
+    return time_form
 
+# %%
+##
 
 # %% [markdown]
 ## Footer
