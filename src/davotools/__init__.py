@@ -2,7 +2,7 @@
 ## Header
 
 # %%
-## imports
+## basic imports
 import os
 
 # %%
@@ -15,21 +15,30 @@ import os
 ## main class
 class davotools:
     ##
-    def __init__(self) -> None:
+    def __init__( self, echo=False ) -> None:
         """
-        <return>
-        None
+        <input>
+            echo: bool = False # an internal process checker
+        <output>
+            None # the class itself returned
         """
         module_path = os.path.abspath(__file__)
         module_dir = os.path.dirname(module_path)
-        print(f"-. davotools located at {module_dir}")
-        print( "* davotools loading started..." )
+        if echo:
+            print(f"-. davotools located at {module_dir}")
+            print( "* davotools loading started..." )
+        ##
+        from davotools import minor
+        self.minor = minor
+        ##
+        from davotools import display
+        self.display = display
         ##
         from davotools import module
         self.module = module
         ##
-        from davotools import display
-        self.display = display
+        from davotools import CLI
+        self.CLI = CLI
         ##
         from davotools import convert
         self.convert = convert
@@ -37,10 +46,8 @@ class davotools:
         from davotools import generate
         self.generate = generate
         ##
-        from davotools import minor
-        self.minor = minor
-        ##
-        print(f"* davotools loading finished.")
+        if echo:
+            print(f"* davotools loading finished.")
         return None
 
 # %%

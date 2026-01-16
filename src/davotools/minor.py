@@ -12,7 +12,7 @@ import types
 ## Body
 
 # %%
-## To update values of a dictionary
+## to update values of a dictionary
 def update_dict(
         orig: dict, # the original dict to update
         new: dict = None, # new dict to update
