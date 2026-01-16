@@ -3,7 +3,7 @@
 
 # %%
 ## basic imports
-import types
+import datetime
 
 # %%
 ##
@@ -25,15 +25,63 @@ def update_dict(
         new: dict = None, # new dict to update
         echo: bool = False,
     <output>
-        dict # the updated dict
+        updated: dict # the updated dict
     """
-    output = orig.copy()
+    updated = orig.copy()
     for k, v in new.items():
-        output[k] = v
+        updated[k] = v
         if echo:
             print( f"* {k}: {v}")
     ##
-    return output
+    return updated
+
+# %%
+## to keep a track of time
+def time_keep(
+        time_start: datetime = None, # the starting time if time spent is needed
+) -> datetime:
+    ##
+    """
+    a function to keep a track of time
+    <input>
+        time_start: datetime = None, # the starting time
+    <output>
+        time_return: datetime
+            (1) if time_start is None, then the time_start is returned.
+            (1) if time_start not None, then the time_end is returned.
+    """
+    if time_start is None:
+        time_start = datetime.datetime.now()
+        time_start_form = time_format(time_start)
+        print( f"-. Time (start): {time_start_form}" )
+        time_return = time_start
+    else:
+        time_end = datetime.datetime.now()
+        time_end_form = time_format(time_end)
+        print( f"-. Time (end): {time_end_form}" )
+        ##
+        time_spent = time_end - time_start
+        print( f"-. Time (spent): { str(time_spent) }" )
+        time_return = time_end
+    ##
+    return time_return
+
+# %%
+## to change the format of a datetime object into str
+def time_format(
+        time: datetime, # the time in datetime format
+) -> str:
+    ##
+    """
+    a function to change the format of a datetime object into str
+    <input>
+        time: datetime, # the time in datetime format
+    <output>
+        time_form: str # the time in str (%Y-%m-%d %H:%M:%S)
+    """
+    time_form = time.strftime("%Y-%m-%d %H:%M:%S")
+    return time
+
 
 # %% [markdown]
 ## Footer
