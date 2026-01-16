@@ -19,6 +19,7 @@ def update_dict(
         echo: bool = False,
 ) -> dict:
     """
+    a function to update values of a dictionary
     <input>
         orig: dict, # the original dict to update
         new: dict = None, # new dict to update

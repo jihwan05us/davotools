@@ -22,7 +22,7 @@ def load_module_from_code(
         path: str, # a source code path of the module
 ) -> types.ModuleType:
     """
-    ## to load a module from a source code
+    a function to load a module from a source code
     <input>
         name: str, # the name of the module
         path: str, # a source code path of the module

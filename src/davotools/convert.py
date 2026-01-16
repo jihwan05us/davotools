@@ -26,6 +26,7 @@ def from_geojson_to_shapely(
         G, # a geojson object imported by >> G = geojson.load( open(path) )
 ) -> tuple[ pd.DataFrame, dict, dict[ int, np.ndarray ] ]:
     """
+    a function to convert: from a geojson object to shapely objects
     <input>
         G, # a geojson object imported by >> G = geojson.load( open(path) )
     <output>
@@ -95,6 +96,7 @@ def from_shapely_to_numpy(
         coords: dict[int, np.ndarray], # output from convert_geojson_shapely
 ) -> np.ndarray[bool]:
     """
+    a function to convert: from shapely objects to a numpy array (mask)
     <input>
         size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
         info: pd.DataFrame, # output from convert_geojson_shapely
@@ -127,6 +129,7 @@ def from_geojson_to_numpy(
         size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
 ) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
     """
+    a function to convert: from a geojson file path a numpy array (mask)
     <input>
         path: str, # a path to geojson object
         size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)

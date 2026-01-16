@@ -20,6 +20,7 @@ def view_list(
         k: str = None, # a keyword describing 'l'
 ) -> None:
     """
+    a function to display: a list
     <input>
         l: list, # a list
         k: str = None, # a keyword describing 'l'
@@ -41,6 +42,7 @@ def view_dict(
         i: int = 0, # a layer index for checking depth
 ) -> None:
     """
+    a function to display: a dict
     <input>
         d: dict, # a dictionary
         k: str = None, # a keyword describing 'd'
@@ -74,6 +76,7 @@ def view_pd(
         iloc: list[int] = [0,1,-1], # a location index
 ) -> None:
     """
+    a function to display: a pandas table
     <input>
         table: pd.DataFrame, # a pandas table
         k: str = None, # a keyword describing 'table'

@@ -26,6 +26,7 @@ def subinterval_1d_centered(
         echo: bool = False,
 ) -> pd.DataFrame:
     """
+    a function to generate: equal length subintervals from a 1d interval
     <input>
         range: tuple[int,int], # range to be split into grids
         size: int = 256, # grid size
@@ -118,6 +119,7 @@ def patch_coords(
         echo: bool = False, # whether to display internal results
 ) -> pd.DataFrame:
     """
+    a function to generate: coordinates of patches from a big image
     <input>
         image_size: tuple[int,int],
         patch_size: tuple[int,int],
