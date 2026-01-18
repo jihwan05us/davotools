@@ -30,16 +30,20 @@ Here are a list of functions in the package.
 Please check docstrings (`print(*.__doc__)`) for details.
 
 ```python
-## to display
-davotools.display.view_list
-davotools.display.view_dict
-davotools.display.view_pd
+## input & output tools
+davotools.io.read
+davotools.io.write
+davotools.io.load_module_from_code
+davotools.io.load_CLI
 
-## to convert
-davotools.convert.from_geojson_to_numpy
+## checking tools
+davotools.view.list
+davotools.view.dict
+davotools.view.pd
 
-## to generate
-davotools.generate.patch_coords
+## image analysis tools
+davotools.image.convert_geojson_to_numpy
+davotools.image.generate_patch_coords
 ```
 
 ### License

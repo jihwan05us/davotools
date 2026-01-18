@@ -9,7 +9,7 @@ import argparse
 ##
 
 # %% [markdown]
-## Body
+## Body: CLI
 
 # %%
 ## to load command line interface (CLI) inputs
@@ -30,6 +30,9 @@ def load_inputs(
         else parser.parse_args("") # for Jupyter interface
     CLI = vars(CLI)
     return CLI
+
+# %%
+##
 
 # %% [markdown]
 ## Footer

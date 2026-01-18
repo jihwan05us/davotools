@@ -3,7 +3,7 @@
 
 # %%
 ## basic imports
-import os
+import os, types
 
 # %%
 ##
@@ -31,23 +31,17 @@ class davotools:
         from davotools import minor
         self.minor = minor
         ##
-        from davotools import display
-        self.display = display
-        ##
-        from davotools import module
-        self.module = module
-        ##
-        from davotools import CLI
-        self.CLI = CLI
+        view = types.ModuleType('davotools.view')
+        view.list = minor.view_list
+        view.dict = minor.view_dict
+        view.pd = minor.view_pd
+        self.view = view
         ##
         from davotools import io
         self.io = io
         ##
-        from davotools import convert
-        self.convert = convert
-        ##
-        from davotools import generate
-        self.generate = generate
+        from davotools import image
+        self.image = image
         ##
         if echo:
             print(f"* davotools loading finished.")

@@ -13,7 +13,7 @@ import importlib.util
 ##
 
 # %% [markdown]
-## Body
+## Body: module
 
 # %%
 ## to load a module from a source code

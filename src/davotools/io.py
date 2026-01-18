@@ -3,7 +3,7 @@
 
 # %%
 ## basic imports
-import datetime, os, json, yaml
+import argparse, datetime, json, os, pickle, types, xml, yaml
 ##
 import numpy as np
 import pandas as pd
@@ -11,11 +11,9 @@ import matplotlib.pyplot as plt
 
 # %%
 ## additional imports
-import geojson
-import pickle
+import geojson, tifffile
+import importlib.util
 import PIL.Image
-import tifffile
-import xml
 
 # %%
 ##
@@ -150,4 +148,67 @@ def write_tiff( path, image, channels=None, **kwargs ):
             }, ome=True, **kwargs )
     else:
         tifffile.imwrite( path, image, **kwargs )
+
+# %%
+##
+
+# %% [markdown]
+## Body: module
+
+# %%
+## to load a module from a source code
+def load_module_from_code(
+        name: str, # the name of the module
+        path: str, # a source code path of the module
+) -> types.ModuleType:
+    """
+    a function to load a module from a source code
+    <input>
+        name: str, # the name of the module
+        path: str, # a source code path of the module
+    <output>
+        module: types.ModuleType
+    """
+    if not os.path.exists(path):
+        raise ValueError( f"*** davotools.module.load_module_from_code(): no such {path}" )
+    spec = importlib.util.spec_from_file_location( name, path )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    ##
+    return module
+
+# %%
+##
+
+# %% [markdown]
+## Body: CLI
+
+# %%
+## to load command line interface (CLI) inputs
+def load_CLI(
+        parser: argparse.Namespace, # CLI arguments
+        in_IPy: bool # a checker of IPython interface
+) -> dict:
+    """
+    a function to load command line interface (CLI) inputs
+    <input>
+        parser: argparse.Namespace, # CLI argument settings
+        in_IPy: bool # a checker: whether being inside an IPython interface
+    <output>
+        CLI: dict
+    """
+    ##
+    CLI = parser.parse_args() if not in_IPy \
+        else parser.parse_args("") # for Jupyter interface
+    CLI = vars(CLI)
+    return CLI
+
+# %%
+##
+
+# %% [markdown]
+## Footer
+
+# %%
+##
 
