@@ -4,6 +4,7 @@
 # %%
 ## basic imports
 import math
+import multiprocessing.Pool
 ##
 import numpy as np
 import pandas as pd
@@ -34,8 +35,8 @@ def convert_geojson_to_shapely(
         G, # a geojson object imported by >> G = geojson.load( open(path) )
     <output>
         info: pd.DataFrame, # information of every annotation
-        shapes: dict # shapely objects of every annotation
-        coords: dict[ int, np.ndarray ] # coordinates of every annotation
+        shapes: dict, # shapely objects of every annotation
+        coords: dict[ int, np.ndarray ], # coordinates of every annotation
     """
     info = pd.DataFrame( columns=[
         'feat_index', 'feat_type', 'feat_id',
@@ -157,9 +158,9 @@ def convert_shapely_to_polygon(
     <input>
         coord: np.ndarray, # a coordinate output from convert_geojson_shapely
     <output>
-        (h, v): tuple[ np.ndarray[int], np.ndarray[int] ] # lists of coordinates of points
+        (h, v): tuple[ np.ndarray[int], np.ndarray[int] ] # lists of coordinates of points in either int or np.int64
     """
-    (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+    (h, v) = 
     ##
     return (h, v)
 
@@ -181,6 +182,18 @@ def convert_multi_shapely_to_numpy(
     """
     mask = np.full( size, 0, dtype=int )
     ##
+    def worker( i, info_row ):
+        coord = coords[i]
+        (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+        return (h, v)
+    ##
+    with multiprocessing.Pool() as p:
+        results = p.map( worker, info.iterrows() )
+    print(results)
+
+# %%
+##
+"""
     for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
         coord = coords[i]
         (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
@@ -196,6 +209,7 @@ def convert_multi_shapely_to_numpy(
             mask[vv, hh] = info_row['feat_index']
     ##
     return mask
+"""
 
 # %%
 ##
