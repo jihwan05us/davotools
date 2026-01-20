@@ -127,16 +127,56 @@ def convert_shapely_to_numpy(
     return mask
 
 # %%
+## to convert (multiprocessing): shapely objects into a numpy array (mask)
+def convert_multi_shapely_to_numpy(
+        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
+        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+        cpu_max: int = None, # the maximum number of cpu cores for multiprocessing
+) -> np.ndarray[bool]:
+    """
+    a function to convert: from shapely objects to a numpy array (mask)
+    <input>
+        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
+        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+        cpu_max: int = None, # the maximum number of cpu cores for multiprocessing
+    <output>
+        mask: np.ndarray[bool] # binary mask of the roi
+    """
+    mask = np.full( size, 0, dtype=int )
+    ##
+    cpus = os.cpu_count()
+    cpus_use = cpus
+    if cpu_max is not None:
+        cpus_use = min( cpu_max, cpus-1 )
+    cpus_use = max( cpus_use, 1 )
+    print( f"-. total {cpus=} and {cpus_use=}" )
+    ##
+    with multiprocessing.Pool(cpus_use) as pool:
+        results = pool.map( convert_multi_shapely_to_numpy_worker, coords.items() )
+    ##
+    for i, h, v in results:
+        mask[v, h] = i
+    ##
+    return mask
+##
+def convert_multi_shapely_to_numpy_worker(coords_items):
+    i, coord = coords_items
+    (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+    return (i, h, v)
+
+# %%
 ## to convert: a geojson file path a numpy array (mask)
 def convert_geojson_to_numpy(
         path: str, # a path to geojson object
         size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
+        multi: bool = True, # a checker: whether to use multiprocessing
 ) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
     """
     a function to convert: from a geojson file path a numpy array (mask)
     <input>
         path: str, # a path to geojson object
         size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
+        multi: bool = True, # a checker: whether to use multiprocessing
     <output>
         info: pd.DataFrame, # information of every annotation
         mask: np.ndarray[bool] # a binary mask
@@ -144,58 +184,12 @@ def convert_geojson_to_numpy(
     G = geojson.load( open(path) )
     ##
     info, _, coords = convert_geojson_to_shapely(G)
-    mask = convert_shapely_to_numpy(size, info, coords)
+    if multi == True:
+        mask = convert_multi_shapely_to_numpy(size, coords)
+    else:
+        mask = convert_shapely_to_numpy(size, info, coords)
     ##
     return info, mask
-
-# %%
-## to convert (multiprocessing): shapely objects into a numpy array (mask)
-def convert_multi_shapely_to_numpy(
-        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
-        info: pd.DataFrame, # output from convert_geojson_shapely
-        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
-) -> np.ndarray[bool]:
-    """
-    a function to convert: from shapely objects to a numpy array (mask)
-    <input>
-        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
-        info: pd.DataFrame, # output from convert_geojson_shapely
-        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
-    <output>
-        mask: np.ndarray[bool] # binary mask of the roi
-    """
-    mask = np.full( size, 0, dtype=int )
-    ##
-    def worker( i, info_row ):
-        coord = coords[i]
-        (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
-        return (h, v)
-    ##
-    with multiprocessing.Pool(
-        max( os.cpu_count()-1, 1 )
-    ) as p:
-        results = p.map( worker, info.iterrows() )
-    print(results)
-
-# %%
-##
-"""
-    for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
-        coord = coords[i]
-        (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
-        ##
-        for Ia, Va in enumerate(h):
-            vv = v[Ia]
-            hh = Va
-            ##
-            if ( vv < 0 ) or ( vv >= mask.shape[0] ):
-                continue
-            if ( hh < 0 ) or ( hh >= mask.shape[1] ):
-                continue
-            mask[vv, hh] = info_row['feat_index']
-    ##
-    return mask
-"""
 
 # %%
 ##
