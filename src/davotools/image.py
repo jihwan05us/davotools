@@ -3,7 +3,7 @@
 
 # %%
 ## basic imports
-import math
+import math, os
 import multiprocessing.Pool
 ##
 import numpy as np
@@ -130,13 +130,13 @@ def convert_shapely_to_numpy(
 ## to convert: a geojson file path a numpy array (mask)
 def convert_geojson_to_numpy(
         path: str, # a path to geojson object
-        size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
+        size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
 ) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
     """
     a function to convert: from a geojson file path a numpy array (mask)
     <input>
         path: str, # a path to geojson object
-        size: tuple[int, int] = None, # the size of a numpy mask (vertical*horizontal)
+        size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
     <output>
         info: pd.DataFrame, # information of every annotation
         mask: np.ndarray[bool] # a binary mask
@@ -147,22 +147,6 @@ def convert_geojson_to_numpy(
     mask = convert_shapely_to_numpy(size, info, coords)
     ##
     return info, mask
-
-# %%
-## to convert: a shapely object into an skimage polygon
-def convert_shapely_to_polygon(
-        coord: np.ndarray, # a coordinate output from convert_geojson_shapely
-) -> tuple[ np.ndarray[int], np.ndarray[int] ]:
-    """
-    a function to convert: from shapely objects to a numpy array (mask)
-    <input>
-        coord: np.ndarray, # a coordinate output from convert_geojson_shapely
-    <output>
-        (h, v): tuple[ np.ndarray[int], np.ndarray[int] ] # lists of coordinates of points in either int or np.int64
-    """
-    (h, v) = 
-    ##
-    return (h, v)
 
 # %%
 ## to convert (multiprocessing): shapely objects into a numpy array (mask)
@@ -187,7 +171,9 @@ def convert_multi_shapely_to_numpy(
         (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
         return (h, v)
     ##
-    with multiprocessing.Pool() as p:
+    with multiprocessing.Pool(
+        max( os.cpu_count()-1, 1 )
+    ) as p:
         results = p.map( worker, info.iterrows() )
     print(results)
 
