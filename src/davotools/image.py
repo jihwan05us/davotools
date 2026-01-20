@@ -4,7 +4,7 @@
 # %%
 ## basic imports
 import math, os
-import multiprocessing.Pool
+import multiprocessing
 ##
 import numpy as np
 import pandas as pd
