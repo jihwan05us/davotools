@@ -157,8 +157,8 @@ def convert_multi_shapely_to_numpy(
     for i, h, v in results:
         h[h<0] = 0
         h[ h >= mask.shape[1] ] = mask.shape[1] - 1
-        h[h<0] = 0
-        h[ h >= mask.shape[0] ] = mask.shape[0] - 1
+        v[v<0] = 0
+        v[ v >= mask.shape[0] ] = mask.shape[0] - 1
         mask[v, h] = i
     ##
     return mask
