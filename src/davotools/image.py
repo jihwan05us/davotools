@@ -142,7 +142,7 @@ def convert_multi_shapely_to_numpy(
     <output>
         mask: np.ndarray[bool] # binary mask of the roi
     """
-    mask = np.full( size, 0, dtype=int )
+    mask = np.full( size, 0, dtype=np.int64 )
     ##
     cpus = os.cpu_count()
     cpus_use = cpus

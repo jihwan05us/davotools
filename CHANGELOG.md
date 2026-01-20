@@ -2,7 +2,7 @@
 
 ### 20260120 v0.0.3
 -. changes in module names
-
+-. ROI multiprocessing
 
 
 # Old versions of 2025
