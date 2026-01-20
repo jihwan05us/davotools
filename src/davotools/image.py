@@ -24,7 +24,7 @@ import skimage.draw
 ## Body: annotation
 
 # %%
-## to convert: a geojson object to shapely objects
+## to convert: a geojson object into shapely objects
 def convert_geojson_to_shapely(
         G, # a geojson object imported by >> G = geojson.load( open(path) )
 ) -> tuple[ pd.DataFrame, dict, dict[ int, np.ndarray ] ]:
@@ -92,7 +92,7 @@ def convert_geojson_to_shapely(
     return info, shapes, coords
 
 # %%
-## to convert: shapely objects to a numpy array (mask)
+## to convert: shapely objects into a numpy array (mask)
 def convert_shapely_to_numpy(
         size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
         info: pd.DataFrame, # output from convert_geojson_shapely
@@ -111,7 +111,7 @@ def convert_shapely_to_numpy(
     ##
     for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
         coord = coords[i]
-        ( h, v ) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+        (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
         ##
         for Ia, Va in enumerate(h):
             vv = v[Ia]
@@ -121,7 +121,7 @@ def convert_shapely_to_numpy(
                 continue
             if ( hh < 0 ) or ( hh >= mask.shape[1] ):
                 continue
-            mask[ vv, hh ] = info_row['feat_index']
+            mask[vv, hh] = info_row['feat_index']
     ##
     return mask
 
@@ -146,6 +146,56 @@ def convert_geojson_to_numpy(
     mask = convert_shapely_to_numpy(size, info, coords)
     ##
     return info, mask
+
+# %%
+## to convert: a shapely object into an skimage polygon
+def convert_shapely_to_polygon(
+        coord: np.ndarray, # a coordinate output from convert_geojson_shapely
+) -> tuple[ np.ndarray[int], np.ndarray[int] ]:
+    """
+    a function to convert: from shapely objects to a numpy array (mask)
+    <input>
+        coord: np.ndarray, # a coordinate output from convert_geojson_shapely
+    <output>
+        (h, v): tuple[ np.ndarray[int], np.ndarray[int] ] # lists of coordinates of points
+    """
+    (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+    ##
+    return (h, v)
+
+# %%
+## to convert (multiprocessing): shapely objects into a numpy array (mask)
+def convert_multi_shapely_to_numpy(
+        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
+        info: pd.DataFrame, # output from convert_geojson_shapely
+        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+) -> np.ndarray[bool]:
+    """
+    a function to convert: from shapely objects to a numpy array (mask)
+    <input>
+        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
+        info: pd.DataFrame, # output from convert_geojson_shapely
+        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+    <output>
+        mask: np.ndarray[bool] # binary mask of the roi
+    """
+    mask = np.full( size, 0, dtype=int )
+    ##
+    for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
+        coord = coords[i]
+        (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+        ##
+        for Ia, Va in enumerate(h):
+            vv = v[Ia]
+            hh = Va
+            ##
+            if ( vv < 0 ) or ( vv >= mask.shape[0] ):
+                continue
+            if ( hh < 0 ) or ( hh >= mask.shape[1] ):
+                continue
+            mask[vv, hh] = info_row['feat_index']
+    ##
+    return mask
 
 # %%
 ##
