@@ -22,6 +22,7 @@ from IPython.display import display as Id_display
 def update_dict(
         orig: dict, # the original dict to update
         new: dict = None, # new dict to update
+        ignore_None: bool = False, # a checker: whether to ignore updating None
         echo: bool = False # a checker: whether to visualize details
 ) -> dict:
     """
@@ -29,15 +30,19 @@ def update_dict(
     <input>
         orig: dict, # the original dict to update
         new: dict = None, # new dict to update
+        ignore_None: bool = False, # a checker: whether to ignore updating None
         echo: bool = False,
     <output>
         updated: dict # the updated dict
     """
     updated = orig.copy()
     for k, v in new.items():
-        updated[k] = v
         if echo:
             print( f"* {k}: {v}")
+        if ( ignore_None is True ) and ( v is None ):
+            continue
+        else:
+            updated[k] = v
     ##
     return updated
 
@@ -179,7 +184,10 @@ def view_pd(
     if k is None:
         k = 'table'
     print(f"-. {k}: { type(table) } {table.shape}")
-    Id_display( table.iloc[iloc] )
+    if table.shape[0] > 5:
+        Id_display( table.iloc[iloc] )
+    else:
+        Id_display(table)
     ##
     return None
 
