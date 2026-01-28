@@ -51,6 +51,8 @@ def read(
         data = pd.read_csv( path, sep='\t', **kwargs )
     elif extension in [ 'xlsx', 'xls' ]:
         data = pd.read_excel( path, **kwargs )
+    elif extension in [ 'feather' ]:
+        data = pd.read_feather( path, **kwargs )
     elif extension == 'pkl':
         with open( path, 'rb' ) as f:
             data = pickle.load( f, **kwargs )
