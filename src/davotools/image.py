@@ -172,7 +172,7 @@ def convert_multi_shapely_to_numpy_worker(coords_items):
 def convert_geojson_to_numpy(
         path: str, # a path to geojson object
         size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
-        multi: bool = True, # a checker: whether to use multiprocessing
+        multi: int | bool = True, # a checker: whether to use multiprocessing
 ) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
     """
     a function to convert: a geojson file path into a numpy array (mask)
@@ -187,10 +187,15 @@ def convert_geojson_to_numpy(
     G = geojson.load( open(path) )
     ##
     info, _, coords = convert_geojson_to_shapely(G)
-    if multi == True:
-        mask = convert_multi_shapely_to_numpy(size, coords)
+    if isinstance(multi, bool):
+        if multi == True:
+            mask = convert_multi_shapely_to_numpy(size, coords)
+        else:
+            mask = convert_shapely_to_numpy(size, info, coords)
+    elif isinstance(multi, int):
+        mask = convert_multi_shapely_to_numpy(size, coords, multi)
     else:
-        mask = convert_shapely_to_numpy(size, info, coords)
+        raise ValueError(f"*** the core count for multiprocessing is not well defined!!!")
     ##
     return info, mask
 

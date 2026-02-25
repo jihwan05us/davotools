@@ -17,11 +17,10 @@ pip install git+https://github.com/ohjihw_merck/davotools.git
 
 ### Loading
 
-The package is created within a class structure.
+The package is created as a regular python package.
 
 ```python
 import davotools
-davotools = datovools.davotools()
 ```
 
 ### Usage
@@ -48,7 +47,7 @@ davotools.image.generate_patch_coords
 
 ### License
 
-Copyright 2026 Jihwan Oh
+Copyright 2025-2026 Jihwan Oh
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
