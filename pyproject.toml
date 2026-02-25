@@ -10,7 +10,7 @@ description = "DAVOlatte's everyday TOOLS"
 authors = [
   { name="Jihwan Oh", email="jihwan05us@gmail.com" },
 ]
-version = "0.0.3"
+version = "0.0.4"
 requires-python = ">=3.10"
 readme = "README.md"
 classifiers = [

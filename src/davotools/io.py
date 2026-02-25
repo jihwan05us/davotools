@@ -16,7 +16,6 @@ import importlib.util
 import PIL.Image
 
 # %%
-##
 
 # %% [markdown]
 ## Body
@@ -30,11 +29,11 @@ def read(
 ):
     """
     a function to read a data file
-    <input>
+    Args:
         path: str, # a path of the data file
         echo: bool = False, # a checker: whether to visualize details
         **kwargs
-    <output>
+    Returns:
         data: (multiple format) # data object read from the file
     """
     extension = path.split('.')[-1]
@@ -88,12 +87,12 @@ def write(
 ) -> None:
     """
     a function to write data into a file
-    <input>
+    Args:
         path: str, # a path of the file
         data, # a data to be written into a file
         echo: bool = False, # a checker: whether to visualize details
         **kwargs
-    <output>
+    Returns:
         None
     """
     dir = path.split('/')
@@ -152,7 +151,6 @@ def write_tiff( path, image, channels=None, **kwargs ):
         tifffile.imwrite( path, image, **kwargs )
 
 # %%
-##
 
 # %% [markdown]
 ## Body: module
@@ -165,10 +163,10 @@ def load_module_from_code(
 ) -> types.ModuleType:
     """
     a function to load a module from a source code
-    <input>
+    Args:
         name: str, # the name of the module
         path: str, # a source code path of the module
-    <output>
+    Returns:
         module: types.ModuleType
     """
     if not os.path.exists(path):
@@ -180,7 +178,6 @@ def load_module_from_code(
     return module
 
 # %%
-##
 
 # %% [markdown]
 ## Body: CLI
@@ -193,10 +190,10 @@ def load_CLI(
 ) -> dict:
     """
     a function to load command line interface (CLI) inputs
-    <input>
+    Args:
         parser: argparse.Namespace, # CLI argument settings
         in_IPy: bool # a checker: whether being inside an IPython interface
-    <output>
+    Returns:
         CLI: dict
     """
     ##
@@ -206,11 +203,7 @@ def load_CLI(
     return CLI
 
 # %%
-##
 
 # %% [markdown]
 ## Footer
-
-# %%
-##
 
