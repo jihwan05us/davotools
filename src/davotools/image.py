@@ -189,7 +189,7 @@ def convert_geojson_to_numpy(
     info, _, coords = convert_geojson_to_shapely(G)
     if isinstance(multi, bool):
         if multi == True:
-            mask = convert_multi_shapely_to_numpy(size, coords)
+            mask = convert_multi_shapely_to_numpy( size, coords, max( 1, os.cpu_count()-1 ) )
         else:
             mask = convert_shapely_to_numpy(size, info, coords)
     elif isinstance(multi, int):

@@ -2,6 +2,7 @@
 
 ### 20260225 v0.0.4
 -. removed class structure
+-. multiprocessing bug fix in image.convert_geojson_to_numpy()
 
 
 # Old versions of 2026
