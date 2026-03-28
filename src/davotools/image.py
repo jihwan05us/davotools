@@ -10,7 +10,11 @@ import numpy as np
 import pandas as pd
 ##
 from tqdm import tqdm
-from IPython.display import display
+##
+try:
+    from IPython.display import display
+except ImportError:
+    display = print
 
 # %%
 ## additional imports
@@ -53,15 +57,14 @@ def convert_geojson_to_shapely(
         geo = feat['geometry'] if 'geometry' in feat.keys() else None
         prop = feat['properties'] if 'properties' in feat.keys() else None
         ##
-        if True:
-            geo_coord = geo['coordinates'] if 'coordinates' in geo.keys() else None
-            geo_type = geo['type'] if 'type' in geo.keys() else None
-        if True:
-            prop_type = prop['objectType'] if 'objectType' in prop.keys() else None
-            prop_name = prop['name'] if 'name' in prop.keys() else None
-            prop_class = ( prop['classification']['name']
-                if 'classification' in prop.keys()
-                else None )
+        geo_coord = geo['coordinates'] if 'coordinates' in geo.keys() else None
+        geo_type = geo['type'] if 'type' in geo.keys() else None
+        ##
+        prop_type = prop['objectType'] if 'objectType' in prop.keys() else None
+        prop_name = prop['name'] if 'name' in prop.keys() else None
+        prop_class = ( prop['classification']['name']
+            if 'classification' in prop.keys()
+            else None )
         ##
         info_new = {}
         info_new['feat_index'] = feat_index + 1
@@ -113,9 +116,8 @@ def convert_shapely_to_numpy(
         coord = coords[i]
         (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
         ##
-        for Ia, Va in enumerate(h):
-            vv = v[Ia]
-            hh = Va
+        for ii, hh in enumerate(h):
+            vv = v[ii]
             ##
             if ( vv < 0 ) or ( vv >= mask.shape[0] ):
                 continue
@@ -184,7 +186,8 @@ def convert_geojson_to_numpy(
         info: pd.DataFrame, # information of every annotation
         mask: np.ndarray[bool] # a binary mask
     """
-    G = geojson.load( open(path) )
+    with open(path) as f:
+        G = geojson.load(f)
     ##
     info, _, coords = convert_geojson_to_shapely(G)
     if isinstance(multi, bool):
@@ -205,38 +208,38 @@ def convert_geojson_to_numpy(
 ## Body: annotation
 
 # %%
-## to generate: equal length subintervals from a 1d interval
+## to generate equal length subintervals from a 1d interval
 def generate_subinterval_1d_centered(
-        range: tuple[int,int], # range to be split into grids
-        size: int = 256, # grid size
-        frame: int = 0, # frame for overlap between a pair of consecutive grids
-        center: int = None, # origin on which grids will span out
-        patch_count_limit_max: int = 1000, # ( maximum size / 2 ) of grids
+        interval: tuple[int,int],
+        size: int = 256,
+        frame: int = 0,
+        center: int = None,
+        patch_count_limit_max: int = 1000,
         echo: bool = False,
+        **kwargs
 ) -> pd.DataFrame:
     """
-    a function to generate: equal length subintervals from a 1d interval
+    a function to generate equal length subintervals from a 1d interval
     Args:
-        range: tuple[int,int], # range to be split into grids
-        size: int = 256, # grid size
-        frame: int = 0, # frame for overlap between a pair of consecutive grids
-        center: int = None, # origin on which grids will span out
-        patch_count_limit_max: int = 1000, # ( maximum size / 2 ) of grids
-        echo: bool = False,
+        interval: tuple[int,int] # interval to be split into grids
+        size: int = 256 # grid size
+        frame: int = 0 # frame for overlap between a pair of consecutive grids
+        center: int = None # origin on which grids will span out
+        patch_count_limit_max: int = 1000 # ( maximum size / 2 ) of grids
+        echo: bool = False
     Returns:
         grids: pd.DataFrame
             # row: each grid
-            # column: each grid's lower range, higher range, and length
+            # column: each grid's lower interval, higher interval, and length
     """
-    ( min, max ) = range
+    ( interval_min, interval_max ) = interval
     if center is None:
-        center = max + min
-        center = int( center / 2 )
+        center = int( ( interval_min + interval_max ) / 2 )
     frame_low = int( frame / 2 )
     frame_high = frame - frame_low
     if echo:
         print( f"-. details:" )
-        print( f"* {min = } & {max = }" )
+        print( f"* {interval_min = } & {interval_max = }" )
         print( f"* {center = }" )
         print( f"* {frame = } & {frame_low = } & {frame_high = }" )
     ##
@@ -247,15 +250,15 @@ def generate_subinterval_1d_centered(
         i = 0
         while ( i < patch_count_limit_max ):
             high = low + size + frame
-            if ( low >= high ) or ( low >= max ):
+            if ( low >= high ) or ( low >= interval_max ):
                 break
             ##
-            final_low = min if low < min else low
-            final_high = max if high > max else high
+            final_low = interval_min if low < interval_min else low
+            final_high = interval_max if high > interval_max else high
             new = pd.Series( { 'low': final_low, 'high': final_high } )
             grids = pd.concat( [ grids, new ], axis=1, ignore_index=True )
             ##
-            if high > max:
+            if high > interval_max:
                 break 
             low = high - frame
             i = i + 1
@@ -267,15 +270,15 @@ def generate_subinterval_1d_centered(
         i = 0
         while ( i < patch_count_limit_max ):
             low = high - size - frame
-            if ( low >= high ) or ( high <= min ):
+            if ( low >= high ) or ( high <= interval_min ):
                 break
             ##
-            final_low = min if low < min else low
-            final_high = max if high > max else high
+            final_low = interval_min if low < interval_min else low
+            final_high = interval_max if high > interval_max else high
             new = pd.Series( { 'low': final_low, 'high': final_high } )
             grids = pd.concat( [ grids, new ], axis=1, ignore_index=True )
             ##
-            if low < min:
+            if low < interval_min:
                 break 
             high = low + frame
             i = i + 1
@@ -283,16 +286,15 @@ def generate_subinterval_1d_centered(
         display(grids)
     ##
     grids = grids.T
-    grids = grids.sort_values(by='high')
-    grids = grids.sort_values(by='low')
+    grids = grids.sort_values( by=['low', 'high'] )
     grids = grids.reset_index(drop=True)
     grids['length'] = grids['high'] - grids['low']
     if echo:
         display(grids)
     ##
-    if grids.loc[ grids['low'] == min ].shape[0] > 1:
+    if grids.loc[ grids['low'] == interval_min ].shape[0] > 1:
         grids = grids.iloc[1:]
-    if grids.loc[ grids['high'] == max ].shape[0] > 1:
+    if grids.loc[ grids['high'] == interval_max ].shape[0] > 1:
         grids = grids.iloc[:-2]
     ##
     if echo:
@@ -326,7 +328,6 @@ def generate_patch_coords(
     center = (
         math.ceil( image_h / 2 ),
         math.ceil( image_w / 2 ) )
-    ( center_h, center_w ) = center
     if echo:
         print( f"-. {image_size = }" )
         print( f"-. {center = }" )

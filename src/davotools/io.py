@@ -23,121 +23,139 @@ import PIL.Image
 # %%
 ## to read a data file
 def read(
-        path: str, # a path of the data file
-        echo: bool = False, # a checker: whether to visualize details
+        path: str,
+        echo: bool = False,
         **kwargs
-):
+) -> object:
     """
     a function to read a data file
     Args:
-        path: str, # a path of the data file
-        echo: bool = False, # a checker: whether to visualize details
+        path: str # a path of the data file
+        echo: bool = False # a checker: whether to visualize details
         **kwargs
     Returns:
-        data: (multiple format) # data object read from the file
+        data: (object) # data object read from the file
     """
     extension = path.split('.')[-1]
     ##
     if extension is None:
-        raise Exception( "*** davotools.io.read(): an input path with unassigned extension" )
-    elif extension in [ 'tif', 'tiff', 'qptiff' ]:
-        data = tifffile.imread( path, **kwargs )
-    elif extension == 'png' :
-        data = plt.imread( path, **kwargs )
-    elif extension == 'csv':
-        data = pd.read_csv( path, **kwargs )
-    elif extension == 'tsv':
-        data = pd.read_csv( path, sep='\t', **kwargs )
-    elif extension in [ 'xlsx', 'xls' ]:
-        data = pd.read_excel( path, **kwargs )
-    elif extension in [ 'feather' ]:
-        data = pd.read_feather( path, **kwargs )
+        msg = "*** davotools.io.read(): an input path with unassigned extension"
+        raise Exception(msg)
+    ##
     elif extension == 'pkl':
-        with open( path, 'rb' ) as f:
-            data = pickle.load( f, **kwargs )
+        with open(path, 'rb') as f:
+            data = pickle.load(f, **kwargs)
     elif extension == 'npy':
-        with open( path, 'rb' ) as f:
-            data = np.load( f, **kwargs )
+        with open(path, 'rb') as f:
+            data = np.load(f, **kwargs)
+    ##
+    elif extension == 'csv':
+        data = pd.read_csv(path, **kwargs)
+    elif extension == 'tsv':
+        data = pd.read_csv(path, sep='\t', **kwargs)
+    elif extension in ['xlsx', 'xls']:
+        data = pd.read_excel(path, **kwargs)
+    elif extension == 'feather':
+        data = pd.read_feather(path, **kwargs)
+    ##
+    elif extension in ['tiff', 'tif', 'qptiff']:
+        data = tifffile.imread(path, **kwargs)
+    elif extension in ['png', 'jpg', 'jpeg'] :
+        data = plt.imread(path, **kwargs)
+    ##
     elif extension == 'json':
-        with open( path, 'r' ) as f:
-            data = json.load( f, **kwargs )
-    elif extension in [ 'yaml', 'yml' ]:
-        with open( path, 'r' ) as f:
-            data = yaml.safe_load( f, **kwargs )
-    elif extension == 'annotations':
-            data =  xml.etree.parse( path, **kwargs )
+        with open(path, 'r') as f:
+            data = json.load(f, **kwargs)
+    elif extension in ['yaml', 'yml']:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f, **kwargs)
     elif extension == 'geojson':
-        with open( path, 'r' ) as f:
-            data = geojson.load( f, **kwargs )
+        with open(path, 'r') as f:
+            data = geojson.load(f, **kwargs)
+    elif extension == 'annotations':
+            data = xml.etree.ElementTree.parse(path, **kwargs)
+    ##
     else:
-        raise Exception( "*** Please check the extension." )
+        msg = "*** Please check the extension."
+        raise Exception(msg)
     ##
     if echo:
-        print( f"-. path loaded: {path}" )
+        print(f"-. path loaded: {path}")
     return data
 
 # %%
 ## to write data into a file
 ##
 def write(
-        path: str, # a path of the file
-        data, # a data to be written into a file
-        echo: bool = False, # a checker: whether to visualize details
+        path: str,
+        data: object,
+        echo: bool = False,
         **kwargs
 ) -> None:
     """
     a function to write data into a file
     Args:
-        path: str, # a path of the file
-        data, # a data to be written into a file
-        echo: bool = False, # a checker: whether to visualize details
+        path: str # a path of the file
+        data: object # a data to be written into a file
+        echo: bool = False # a checker: whether to visualize details
         **kwargs
-    Returns:
-        None
+    Returns: None
     """
-    dir = path.split('/')
-    dir = '/'.join( dir[:-1] )
-    os.makedirs( dir, exist_ok=True )
+    path_dir = path.split('/')
+    path_dir = '/'.join( path_dir[:-1] )
+    os.makedirs(path_dir, exist_ok=True)
     ##
     file = path.split('/')[-1]
     extension = file.split('.')[-1]
     ##
     if extension is None:
-        raise Exception( "*** davotools.io.write(): an output path with unassigned extension" )
+        msg = "*** davotools.io.write(): an output path with unassigned extension"
+        raise Exception(msg)
+    ##
     elif extension == 'pkl':
-        with open( path, 'wb' ) as f:
-            pickle.dump( data, f )
+        with open(path, 'wb') as f:
+            pickle.dump(data, f)
     elif extension == 'npy':
-        with open( path, 'wb' ) as f:
-            np.save( f, data )
+        with open(path, 'wb') as f:
+            np.save(f, data)
+    ##
     elif extension == 'csv':
-        data.to_csv( path, **kwargs )
+        data.to_csv(path, **kwargs)
+    elif extension == 'tsv':
+        data.to_csv(path, sep='\t', **kwargs)
+    ##
     elif extension == 'png':
         data.savefig(path)
     elif extension == 'jpg':
         PIL.Image.fromarray(data).save(path)
-    elif extension == 'tiff':
-        write_tiff( path, data, **kwargs )
+    elif extension in ['tiff', 'tif']:
+        _write_tiff(path, data, **kwargs)
+    ##
     elif extension == 'json':
-        with open( path, 'w') as f:
-            json.dump( data, f, indent='\t' )
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=4)
     elif extension == 'yaml':
-        with open( path, 'w') as f:
-            yaml.dump( data, f, default_flow_style=False, sort_keys=False )
+        with open(path, 'w') as f:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
     elif extension == 'geojson':
-        with open( path, 'w' ) as f:
+        with open(path, 'w') as f:
             f.write(data)
+    ##
     else:
-        raise Exception( "*** Please check the extension." )
+        msg = "*** Please check the extension."
+        raise Exception(msg)
     ##
     if echo:
         time_now = datetime.datetime.now()
-        time_now_form = time_now.strftime( "%Y-%m-%d %H:%M:%S" )
-        print( f"-. path saved [{time_now_form}]: {path}" )
+        time_now_form = time_now.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"-. path saved [{time_now_form}]: {path}")
 
 # %%
 ## to write a image file (.tiff)
-def write_tiff( path, image, channels=None, **kwargs ):
+def _write_tiff(
+        path, image, channels=None,
+        **kwargs
+) -> None:
     if len( image.shape ) > 2:
         if channels is None:
             tifffile.imwrite( path, image, metadata={
@@ -156,22 +174,23 @@ def write_tiff( path, image, channels=None, **kwargs ):
 ## Body: module
 
 # %%
-## to load a module from a source code
-def load_module_from_code(
-        name: str, # the name of the module
-        path: str, # a source code path of the module
+## to import a module from a source code
+def import_module_from_code(
+        name: str,
+        path: str,
 ) -> types.ModuleType:
     """
-    a function to load a module from a source code
+    a function to import a module from a source code
     Args:
-        name: str, # the name of the module
-        path: str, # a source code path of the module
+        name: str # the name of the module
+        path: str # a source code path of the module
     Returns:
         module: types.ModuleType
     """
     if not os.path.exists(path):
-        raise ValueError( f"*** davotools.module.load_module_from_code(): no such {path}" )
-    spec = importlib.util.spec_from_file_location( name, path )
+        msg = f"*** davotools.module.load_module_from_code(): no such {path}"
+        raise ValueError(msg)
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     ##
@@ -185,14 +204,14 @@ def load_module_from_code(
 # %%
 ## to load command line interface (CLI) inputs
 def load_CLI(
-        parser: argparse.Namespace, # CLI arguments
-        in_IPy: bool # a checker of IPython interface
+        parser: argparse.Namespace,
+        in_IPy: bool,
 ) -> dict:
     """
     a function to load command line interface (CLI) inputs
     Args:
-        parser: argparse.Namespace, # CLI argument settings
-        in_IPy: bool # a checker: whether being inside an IPython interface
+        parser: argparse.Namespace # CLI arguments
+        in_IPy: bool # whether being inside an IPython interface
     Returns:
         CLI: dict
     """

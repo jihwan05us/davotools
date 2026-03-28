@@ -5,7 +5,10 @@
 ## basic imports
 import pandas as pd
 ##
-import IPython.display
+try:
+    from IPython.display import display
+except ImportError:
+    display = print
 
 # %%
 
@@ -90,9 +93,9 @@ def view_pd(
         k = 'table'
     print(f"-. {k}: { type(table) } {table.shape}")
     if table.shape[0] > 5:
-        IPython.display.display( table.iloc[iloc] )
+        display( table.iloc[iloc] )
     else:
-        IPython.display.display(table)
+        display(table)
     ##
     return None
 
