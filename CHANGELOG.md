@@ -15,7 +15,7 @@
 -. ROI multiprocessing
 
 ### 20260116 v0.0.2
--. to align functionality with mIFit
+-. to align functionality with other packages.
 
 
 # Old versions of 2025

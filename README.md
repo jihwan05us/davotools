@@ -11,8 +11,8 @@ of Jihwan Oh ('DavoLatte' is his WoW character name).
 Please install with the following shell command to install the package from GitHub.
 
 ```bash
-pip install git+https://github.com/ohjihw_merck/davotools.git
-# pip install --force-reinstall git+https://github.com/ohjihw_merck/davotools.git
+pip install git+https://github.com/jihwan05us/davotools.git
+# pip install --force-reinstall git+https://github.com/jihwan05us/davotools.git
 ```
 
 ### Loading
@@ -32,7 +32,7 @@ Please check docstrings (`print(*.__doc__)`) for details.
 ## input & output tools
 davotools.io.read
 davotools.io.write
-davotools.io.load_module_from_code
+davotools.io.import_module_from_code
 davotools.io.load_CLI
 
 ## checking tools
