@@ -3,8 +3,10 @@
 
 # %%
 ## basic imports
-import argparse, datetime, json, os, pickle, types, xml, yaml
+import argparse, datetime, json, os, pickle, types
+import xml.etree.ElementTree
 ##
+import yaml
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -31,7 +33,7 @@ def read(
     a function to read a data file
     Args:
         path: str # a path of the data file
-        echo: bool = False # a checker: whether to visualize details
+        echo: bool = False # whether to print internal details
         **kwargs
     Returns:
         data: (object) # data object read from the file
@@ -97,7 +99,7 @@ def write(
     Args:
         path: str # a path of the file
         data: object # a data to be written into a file
-        echo: bool = False # a checker: whether to visualize details
+        echo: bool = False # whether to print internal details
         **kwargs
     Returns: None
     """
@@ -153,9 +155,19 @@ def write(
 # %%
 ## to write a image file (.tiff)
 def _write_tiff(
-        path, image, channels=None,
+        path: str,
+        image: np.ndarray,
+        channels: list[str] = None,
         **kwargs
 ) -> None:
+    """
+    a function to write a image file (.tiff)
+    Args:
+        path: str # output path
+        image: np.ndarray # image array (CYX for multi-channel, YX for single)
+        channels: list[str] = None # channel names for OME metadata
+    Returns: None
+    """
     if len( image.shape ) > 2:
         if channels is None:
             tifffile.imwrite( path, image, metadata={
@@ -188,7 +200,7 @@ def import_module_from_code(
         module: types.ModuleType
     """
     if not os.path.exists(path):
-        msg = f"*** davotools.module.load_module_from_code(): no such {path}"
+        msg = f"*** davotools.module.import_module_from_code(): no such {path}"
         raise ValueError(msg)
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
@@ -204,13 +216,13 @@ def import_module_from_code(
 # %%
 ## to load command line interface (CLI) inputs
 def load_CLI(
-        parser: argparse.Namespace,
+        parser: argparse.ArgumentParser,
         in_IPy: bool,
 ) -> dict:
     """
     a function to load command line interface (CLI) inputs
     Args:
-        parser: argparse.Namespace # CLI arguments
+        parser: argparse.ArgumentParser # CLI arguments
         in_IPy: bool # whether being inside an IPython interface
     Returns:
         CLI: dict
@@ -225,4 +237,6 @@ def load_CLI(
 
 # %% [markdown]
 ## Footer
+
+# %%
 

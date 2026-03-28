@@ -33,7 +33,9 @@ view.pd = _view.view_pd
 
 # %%
 ## initializer
-def initialize( echo: bool = False ) -> tuple[str, str]:
+def initialize(
+        echo: bool = False
+) -> tuple[str, str]:
     """
     Args:
         echo: bool = False # whether to show internal details

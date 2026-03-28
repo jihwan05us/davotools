@@ -51,16 +51,16 @@ def update_dict(
 def time_keep(
         time_start: datetime.datetime = None,
         echo: bool = True,
-) -> datetime:
+) -> datetime.datetime:
     """
     a function to keep a track of time
     Args:
-        time_start: datetime = None, # the starting time
+        time_start: datetime.datetime = None # the starting time
         echo: bool = False # whether to print internal details
     Returns:
-        time_return: datetime
+        time_return: datetime.datetime
             (1) if time_start is None, then the time_start is returned.
-            (1) if time_start not None, then the time_end is returned.
+            (2) if time_start not None, then the time_end is returned.
     """
     if time_start is None:
         time_start = datetime.datetime.now()
@@ -84,7 +84,7 @@ def time_keep(
 # %%
 ## to change the format of a datetime object into str
 def _time_format(
-        time: datetime,
+        time: datetime.datetime,
 ) -> str:
     """
     a function to change the format of a datetime object into str

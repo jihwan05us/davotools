@@ -19,18 +19,17 @@ except ImportError:
 ## Body: view
 
 # %%
-## to view: a list
+## to view a list
 def view_list(
-        l: list, # a list
-        k: str = None, # a keyword describing 'l'
+        l: list,
+        k: str = None,
 ) -> None:
     """
-    a function to view: a list
+    a function to view a list
     Args:
-        l: list, # a list
-        k: str = None, # a keyword describing 'l'
-    Returns:
-        None
+        l: list # a list
+        k: str = None # a keyword describing 'l'
+    Returns: None
     """
     if k is not None:
         print(f"-. {k}")
@@ -40,20 +39,19 @@ def view_list(
     return None
 
 # %%
-## to view: a dict
+## to view a dict
 def view_dict(
-        d: dict, # a dictionary
-        k: str = None, # a keyword describing 'd'
-        i: int = 0, # a layer index for checking depth
+        d: dict,
+        k: str = None,
+        i: int = 0,
 ) -> None:
     """
-    a function to view: a dict
+    a function to view a dict
     Args:
-        d: dict, # a dictionary
-        k: str = None, # a keyword describing 'd'
-        i: int = 0, # a layer index for checking depth
-    Returns:
-        None
+        d: dict # a dictionary
+        k: str = None # a keyword describing 'd'
+        i: int = 0 # a layer index for checking depth
+    Returns: None
     """
     if i == 0:
         bullet = '-.'
@@ -74,20 +72,19 @@ def view_dict(
     return None
 
 # %%
-## to view: a pandas table
+## to view a pandas table
 def view_pd(
-        table: pd.DataFrame, # a pandas table
-        k: str = None, # a keyword describing 'table'
-        iloc: list[int] = [0,1,-1], # a location index
+        table: pd.DataFrame,
+        k: str = None,
+        iloc: list[int] = [0,1,-1],
 ) -> None:
     """
-    a function to view: a pandas table
+    a function to view a pandas table
     Args:
-        table: pd.DataFrame, # a pandas table
-        k: str = None, # a keyword describing 'table'
-        iloc: list[int] = [0,1,-1], # a location index
-    Returns:
-        None
+        table: pd.DataFrame # a pandas table
+        k: str = None # a keyword describing 'table'
+        iloc: list[int] = [0,1,-1] # a location index
+    Returns: None
     """
     if k is None:
         k = 'table'
@@ -103,4 +100,6 @@ def view_pd(
 
 # %% [markdown]
 ## Footer
+
+# %%
 

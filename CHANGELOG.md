@@ -1,8 +1,8 @@
 # The current version
 
-### 20260328 v0.0.5
+### 20260328 v0.1.0
 -. Suggestions from Claude Code are reflected.
-
+-. Some minor elements (such as doctrings) are fixed.
 
 # Old versions of 2026
 

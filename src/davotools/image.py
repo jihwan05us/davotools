@@ -28,18 +28,18 @@ import skimage.draw
 ## Body: annotation
 
 # %%
-## to convert: a geojson object into shapely objects
+## to convert a geojson object into shapely objects
 def convert_geojson_to_shapely(
-        G, # a geojson object imported by >> G = geojson.load( open(path) )
+        G: geojson.FeatureCollection,
 ) -> tuple[ pd.DataFrame, dict, dict[ int, np.ndarray ] ]:
     """
-    a function to convert: a geojson object into shapely objects
+    a function to convert a geojson object into shapely objects
     Args:
-        G, # a geojson object imported by >> G = geojson.load( open(path) )
+        G: geojson.FeatureCollection # a geojson object imported by geojson.load()
     Returns:
-        info: pd.DataFrame, # information of every annotation
-        shapes: dict, # shapely objects of every annotation
-        coords: dict[ int, np.ndarray ], # coordinates of every annotation
+        info: pd.DataFrame # information of every annotation
+        shapes: dict # shapely objects of every annotation
+        coords: dict[ int, np.ndarray ] # coordinates of every annotation
     """
     info = pd.DataFrame( columns=[
         'feat_index', 'feat_type', 'feat_id',
@@ -77,13 +77,13 @@ def convert_geojson_to_shapely(
         shapes[feat_index] = shapely.geometry.shape(geo)
         ##
         if geo_type == 'Polygon':
-            for _, v1 in enumerate( geo_coord ):
+            for _, v1 in enumerate(geo_coord):
                 info.loc[i] = info_new
                 coords[i] = np.array(v1).astype(int)
                 ##
                 i = i + 1
         elif geo_type == 'MultiPolygon':
-            for _, v1 in enumerate( geo_coord ):
+            for _, v1 in enumerate(geo_coord):
                 for _, v2 in enumerate(v1):
                     info.loc[i] = info_new
                     coords[i] = np.array(v2).astype(int)
@@ -95,22 +95,22 @@ def convert_geojson_to_shapely(
     return info, shapes, coords
 
 # %%
-## to convert: shapely objects into a numpy array (mask)
+## to convert shapely objects into a numpy array (mask)
 def convert_shapely_to_numpy(
-        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
-        info: pd.DataFrame, # output from convert_geojson_shapely
-        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+        size: tuple[int, int],
+        info: pd.DataFrame,
+        coords: dict[int, np.ndarray],
 ) -> np.ndarray[bool]:
     """
-    a function to convert: shapely objects into a numpy array (mask)
+    a function to convert shapely objects into a numpy array (mask)
     Args:
-        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
-        info: pd.DataFrame, # output from convert_geojson_shapely
-        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
+        size: tuple[int, int] # the size of a binary mask (vertical*horizontal)
+        info: pd.DataFrame # output from convert_geojson_shapely
+        coords: dict[int, np.ndarray] # output from convert_geojson_shapely
     Returns:
         mask: np.ndarray[bool] # binary mask of the roi
     """
-    mask = np.full( size, 0, dtype=int )
+    mask = np.full(size, 0, dtype=int)
     ##
     for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
         coord = coords[i]
@@ -128,62 +128,62 @@ def convert_shapely_to_numpy(
     return mask
 
 # %%
-## to convert (multiprocessing): shapely objects into a numpy array (mask)
+## to convert shapely objects into a numpy array (mask) using multiprocessing
 def convert_multi_shapely_to_numpy(
-        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
-        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
-        cpu_max: int = None, # the maximum number of cpu cores for multiprocessing
+        size: tuple[int, int],
+        coords: dict[int, np.ndarray],
+        cpu_max: int = None,
 ) -> np.ndarray[bool]:
     """
-    a function to convert: shapely objects into a numpy array (mask)
+    a function to convert shapely objects into a numpy array (mask) using multiprocessing
     Args:
-        size: tuple[int, int], # the size of a binary mask (vertical*horizontal)
-        coords: dict[int, np.ndarray], # output from convert_geojson_shapely
-        cpu_max: int = None, # the maximum number of cpu cores for multiprocessing
+        size: tuple[int, int] # the size of a binary mask (vertical*horizontal)
+        coords: dict[int, np.ndarray] # output from convert_geojson_shapely
+        cpu_max: int = None # the maximum number of cpu cores for multiprocessing
     Returns:
         mask: np.ndarray[bool] # binary mask of the roi
     """
-    mask = np.full( size, 0, dtype=np.int64 )
+    mask = np.full(size, 0, dtype=np.int64)
     ##
     cpus = os.cpu_count()
     cpus_use = cpus
     if cpu_max is not None:
-        cpus_use = min( cpu_max, cpus-1 )
-    cpus_use = max( cpus_use, 1 )
-    print( f"-. total {cpus=} and {cpus_use=}" )
+        cpus_use = min(cpu_max, cpus-1)
+    cpus_use = max(cpus_use, 1)
+    print(f"-. total {cpus=} and {cpus_use=}")
     ##
     with multiprocessing.Pool(cpus_use) as pool:
-        results = pool.map( convert_multi_shapely_to_numpy_worker, coords.items() )
+        results = pool.map( _convert_multi_shapely_to_numpy_worker, coords.items() )
     ##
     for i, h, v in results:
-        h[h<0] = 0
+        h[ h < 0 ] = 0
         h[ h >= mask.shape[1] ] = mask.shape[1] - 1
-        v[v<0] = 0
+        v[ v < 0 ] = 0
         v[ v >= mask.shape[0] ] = mask.shape[0] - 1
         mask[v, h] = i
     ##
     return mask
 ##
-def convert_multi_shapely_to_numpy_worker(coords_items):
+def _convert_multi_shapely_to_numpy_worker(coords_items):
     i, coord = coords_items
     (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
     return (i, h, v)
 
 # %%
-## to convert: a geojson file path into a numpy array (mask)
+## to convert a geojson file path into a numpy array (mask)
 def convert_geojson_to_numpy(
-        path: str, # a path to geojson object
-        size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
-        multi: int | bool = True, # a checker: whether to use multiprocessing
+        path: str,
+        size: tuple[int, int],
+        multi: int | bool = True,
 ) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
     """
-    a function to convert: a geojson file path into a numpy array (mask)
+    a function to convert a geojson file path into a numpy array (mask)
     Args:
-        path: str, # a path to geojson object
-        size: tuple[int, int], # the size of a numpy mask (vertical*horizontal)
-        multi: bool = True, # a checker: whether to use multiprocessing
+        path: str # a path to geojson object
+        size: tuple[int, int] # the size of a numpy mask (vertical*horizontal)
+        multi: int | bool = True # whether to use multiprocessing
     Returns:
-        info: pd.DataFrame, # information of every annotation
+        info: pd.DataFrame # information of every annotation
         mask: np.ndarray[bool] # a binary mask
     """
     with open(path) as f:
@@ -198,7 +198,8 @@ def convert_geojson_to_numpy(
     elif isinstance(multi, int):
         mask = convert_multi_shapely_to_numpy(size, coords, multi)
     else:
-        raise ValueError(f"*** the core count for multiprocessing is not well defined!!!")
+        msg = f"*** the core count for multiprocessing is not well defined!!!"
+        raise ValueError(msg)
     ##
     return info, mask
 
@@ -226,22 +227,22 @@ def generate_subinterval_1d_centered(
         frame: int = 0 # frame for overlap between a pair of consecutive grids
         center: int = None # origin on which grids will span out
         patch_count_limit_max: int = 1000 # ( maximum size / 2 ) of grids
-        echo: bool = False
+        echo: bool = False # whether to print internal details
     Returns:
         grids: pd.DataFrame
             # row: each grid
             # column: each grid's lower interval, higher interval, and length
     """
-    ( interval_min, interval_max ) = interval
+    interval_min, interval_max = interval
     if center is None:
         center = int( ( interval_min + interval_max ) / 2 )
     frame_low = int( frame / 2 )
     frame_high = frame - frame_low
     if echo:
-        print( f"-. details:" )
-        print( f"* {interval_min = } & {interval_max = }" )
-        print( f"* {center = }" )
-        print( f"* {frame = } & {frame_low = } & {frame_high = }" )
+        print(f"-. details:")
+        print(f"* {interval_min = } & {interval_max = }")
+        print(f"* {center = }")
+        print(f"* {frame = } & {frame_low = } & {frame_high = }")
     ##
     grids = pd.DataFrame()
     ##
@@ -256,7 +257,7 @@ def generate_subinterval_1d_centered(
             final_low = interval_min if low < interval_min else low
             final_high = interval_max if high > interval_max else high
             new = pd.Series( { 'low': final_low, 'high': final_high } )
-            grids = pd.concat( [ grids, new ], axis=1, ignore_index=True )
+            grids = pd.concat( [grids, new], axis=1, ignore_index=True )
             ##
             if high > interval_max:
                 break 
@@ -276,7 +277,7 @@ def generate_subinterval_1d_centered(
             final_low = interval_min if low < interval_min else low
             final_high = interval_max if high > interval_max else high
             new = pd.Series( { 'low': final_low, 'high': final_high } )
-            grids = pd.concat( [ grids, new ], axis=1, ignore_index=True )
+            grids = pd.concat( [grids, new], axis=1, ignore_index=True )
             ##
             if low < interval_min:
                 break 
@@ -302,53 +303,54 @@ def generate_subinterval_1d_centered(
     return grids
 
 # %%
-## to generate: coordinates of patches from a big image
+## to generate coordinates of patches from a big image
 def generate_patch_coords(
-        image_size: tuple[int,int], # the size of an entire image
-        patch_size: tuple[int,int], # the wanted size of patches
-        patch_overlap: tuple[int,int] = (0,0), # the size of overlapping region
-        echo: bool = False, # whether to display internal results
-) -> pd.DataFrame:
-    """
-    a function to generate: coordinates of patches from a big image
-    Args:
         image_size: tuple[int,int],
         patch_size: tuple[int,int],
         patch_overlap: tuple[int,int] = (0,0),
         echo: bool = False,
+) -> pd.DataFrame:
+    """
+    a function to generate coordinates of patches from a big image
+    Args:
+        image_size: tuple[int,int] # the size of an entire image
+        patch_size: tuple[int,int] # the wanted size of patches
+        patch_overlap: tuple[int,int] = (0,0) # the size of overlapping region
+        echo: bool = False # whether to print internal details
     Returns:
         coords: pd.DataFrame
             # row: each patch
             # column: coordinates (top, bottom, left, right, height, width, edge)
     """
-    ( image_h, image_w ) = image_size
-    ( patch_h, patch_w ) = patch_size
-    ( overlap_h, overlap_w ) = patch_overlap
+    image_h, image_w = image_size
+    patch_h, patch_w = patch_size
+    overlap_h, overlap_w = patch_overlap
     ##
     center = (
         math.ceil( image_h / 2 ),
-        math.ceil( image_w / 2 ) )
+        math.ceil( image_w / 2 )
+    )
     if echo:
-        print( f"-. {image_size = }" )
-        print( f"-. {center = }" )
-        print( f"-. {patch_size = }" )
-        print( f"-. {patch_overlap = }" )
+        print(f"-. {image_size = }")
+        print(f"-. {center = }")
+        print(f"-. {patch_size = }")
+        print(f"-. {patch_overlap = }")
     ##
     coords_h = generate_subinterval_1d_centered( (0,image_h), patch_h, frame=overlap_h )
-    coords_h.columns = [ 'top', 'bottom', 'height' ]
+    coords_h.columns = ['top', 'bottom', 'height']
     if echo:
         display(coords_h)
     ##
     coords_w = generate_subinterval_1d_centered( (0,image_w), patch_w, frame=overlap_w )
-    coords_w.columns = [ 'left', 'right', 'width' ]
+    coords_w.columns = ['left', 'right', 'width']
     if echo:
         display(coords_w)
     ##
     coords = pd.DataFrame()
     for _, row_h in coords_h.iterrows():
         for _, row_w in coords_w.iterrows():
-            entry = pd.concat( [ row_h, row_w ] )
-            coords = pd.concat( [ coords, entry ], axis=1, ignore_index=True )
+            entry = pd.concat( [row_h, row_w] )
+            coords = pd.concat( [coords, entry], axis=1, ignore_index=True )
     coords = coords.T
     ##
     coords['edge'] = False
@@ -365,4 +367,6 @@ def generate_patch_coords(
 
 # %% [markdown]
 ## Footer
+
+# %%
 
