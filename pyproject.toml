@@ -14,6 +14,9 @@ classifiers = [
 authors = [
   { name="Jihwan Oh", email="jihwan05us@gmail.com" },
 ]
+maintainers = [
+  { name="Jihwan Oh", email="jihwan05us@gmail.com" },
+]
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [

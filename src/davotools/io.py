@@ -2,20 +2,16 @@
 ## Header
 
 # %%
-## basic imports
+## imports
 import argparse, datetime, json, os, pickle, types
 import xml.etree.ElementTree
 ##
-import yaml
+import geojson, tifffile, yaml
+import importlib.util
+import PIL.Image
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-# %%
-## additional imports
-import geojson, tifffile
-import importlib.util
-import PIL.Image
 
 # %%
 
@@ -60,10 +56,10 @@ def read(
     elif extension == 'feather':
         data = pd.read_feather(path, **kwargs)
     ##
+    elif extension in ['jpg', 'jpeg', 'png']:
+        data = plt.imread(path, **kwargs)
     elif extension in ['tiff', 'tif', 'qptiff']:
         data = tifffile.imread(path, **kwargs)
-    elif extension in ['png', 'jpg', 'jpeg'] :
-        data = plt.imread(path, **kwargs)
     ##
     elif extension == 'json':
         with open(path, 'r') as f:
@@ -126,10 +122,10 @@ def write(
     elif extension == 'tsv':
         data.to_csv(path, sep='\t', **kwargs)
     ##
+    elif extension in ['jpeg', 'jpg']:
+        plt.imsave(path, data)
     elif extension == 'png':
-        data.savefig(path)
-    elif extension == 'jpg':
-        PIL.Image.fromarray(data).save(path)
+        plt.imsave(path, data)
     elif extension in ['tiff', 'tif']:
         _write_tiff(path, data, **kwargs)
     ##
@@ -157,7 +153,7 @@ def write(
 def _write_tiff(
         path: str,
         image: np.ndarray,
-        channels: list[str] = None,
+        channels: list[str] | None = None,
         **kwargs
 ) -> None:
     """
@@ -165,10 +161,10 @@ def _write_tiff(
     Args:
         path: str # output path
         image: np.ndarray # image array (CYX for multi-channel, YX for single)
-        channels: list[str] = None # channel names for OME metadata
+        channels: list[str] | None = None # channel names for OME metadata
     Returns: None
     """
-    if len( image.shape ) > 2:
+    if len(image.shape) > 2:
         if channels is None:
             tifffile.imwrite( path, image, metadata={
                 'axes': 'CYX',
@@ -178,7 +174,7 @@ def _write_tiff(
                 'axes': 'CYX', 'Channel': { 'Name': channels, },
             }, ome=True, **kwargs )
     else:
-        tifffile.imwrite( path, image, **kwargs )
+        tifffile.imwrite(path, image, **kwargs)
 
 # %%
 
@@ -210,33 +206,4 @@ def import_module_from_code(
 
 # %%
 
-# %% [markdown]
-## Body: CLI
-
 # %%
-## to load command line interface (CLI) inputs
-def load_CLI(
-        parser: argparse.ArgumentParser,
-        in_IPy: bool,
-) -> dict:
-    """
-    a function to load command line interface (CLI) inputs
-    Args:
-        parser: argparse.ArgumentParser # CLI arguments
-        in_IPy: bool # whether being inside an IPython interface
-    Returns:
-        CLI: dict
-    """
-    ##
-    CLI = parser.parse_args() if not in_IPy \
-        else parser.parse_args("") # for Jupyter interface
-    CLI = vars(CLI)
-    return CLI
-
-# %%
-
-# %% [markdown]
-## Footer
-
-# %%
-

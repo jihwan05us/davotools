@@ -31,7 +31,7 @@ import skimage.draw
 ## to convert a geojson object into shapely objects
 def convert_geojson_to_shapely(
         G: geojson.FeatureCollection,
-) -> tuple[ pd.DataFrame, dict, dict[ int, np.ndarray ] ]:
+) -> tuple[ pd.DataFrame, dict, dict[int, np.ndarray] ]:
     """
     a function to convert a geojson object into shapely objects
     Args:
@@ -90,7 +90,7 @@ def convert_geojson_to_shapely(
                     ##
                     i = i + 1
         else:
-            print( info_new )
+            print(info_new)
     ##
     return info, shapes, coords
 
@@ -119,9 +119,9 @@ def convert_shapely_to_numpy(
         for ii, hh in enumerate(h):
             vv = v[ii]
             ##
-            if ( vv < 0 ) or ( vv >= mask.shape[0] ):
+            if (vv < 0) or ( vv >= mask.shape[0] ):
                 continue
-            if ( hh < 0 ) or ( hh >= mask.shape[1] ):
+            if (hh < 0) or ( hh >= mask.shape[1] ):
                 continue
             mask[vv, hh] = info_row['feat_index']
     ##
@@ -156,16 +156,16 @@ def convert_multi_shapely_to_numpy(
         results = pool.map( _convert_multi_shapely_to_numpy_worker, coords.items() )
     ##
     for i, h, v in results:
-        h[ h < 0 ] = 0
+        h[h < 0] = 0
         h[ h >= mask.shape[1] ] = mask.shape[1] - 1
-        v[ v < 0 ] = 0
+        v[v < 0] = 0
         v[ v >= mask.shape[0] ] = mask.shape[0] - 1
         mask[v, h] = i
     ##
     return mask
 ##
 def _convert_multi_shapely_to_numpy_worker(coords_items):
-    i, coord = coords_items
+    (i, coord) = coords_items
     (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
     return (i, h, v)
 
@@ -189,7 +189,7 @@ def convert_geojson_to_numpy(
     with open(path) as f:
         G = geojson.load(f)
     ##
-    info, _, coords = convert_geojson_to_shapely(G)
+    (info, _, coords) = convert_geojson_to_shapely(G)
     if isinstance(multi, bool):
         if multi == True:
             mask = convert_multi_shapely_to_numpy( size, coords, max( 1, os.cpu_count()-1 ) )
@@ -233,9 +233,9 @@ def generate_subinterval_1d_centered(
             # row: each grid
             # column: each grid's lower interval, higher interval, and length
     """
-    interval_min, interval_max = interval
+    (interval_min, interval_max) = interval
     if center is None:
-        center = int( ( interval_min + interval_max ) / 2 )
+        center = int( (interval_min + interval_max) / 2 )
     frame_low = int( frame / 2 )
     frame_high = frame - frame_low
     if echo:
@@ -249,9 +249,9 @@ def generate_subinterval_1d_centered(
     if True: # higher-side expansion from the center
         low = center - frame_low
         i = 0
-        while ( i < patch_count_limit_max ):
+        while (i < patch_count_limit_max):
             high = low + size + frame
-            if ( low >= high ) or ( low >= interval_max ):
+            if (low >= high) or (low >= interval_max):
                 break
             ##
             final_low = interval_min if low < interval_min else low
@@ -269,9 +269,9 @@ def generate_subinterval_1d_centered(
     if True: # lower-side expansion from the center
         high = center + frame_high
         i = 0
-        while ( i < patch_count_limit_max ):
+        while (i < patch_count_limit_max):
             low = high - size - frame
-            if ( low >= high ) or ( high <= interval_min ):
+            if (low >= high) or (high <= interval_min):
                 break
             ##
             final_low = interval_min if low < interval_min else low
@@ -322,13 +322,13 @@ def generate_patch_coords(
             # row: each patch
             # column: coordinates (top, bottom, left, right, height, width, edge)
     """
-    image_h, image_w = image_size
-    patch_h, patch_w = patch_size
-    overlap_h, overlap_w = patch_overlap
+    (image_h, image_w) = image_size
+    (patch_h, patch_w) = patch_size
+    (overlap_h, overlap_w) = patch_overlap
     ##
     center = (
-        math.ceil( image_h / 2 ),
-        math.ceil( image_w / 2 )
+        math.ceil(image_h / 2),
+        math.ceil(image_w / 2)
     )
     if echo:
         print(f"-. {image_size = }")
@@ -365,8 +365,4 @@ def generate_patch_coords(
 
 # %%
 
-# %% [markdown]
-## Footer
-
 # %%
-

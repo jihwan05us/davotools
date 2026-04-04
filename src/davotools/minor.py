@@ -34,7 +34,7 @@ def update_dict(
     for k, v in new.items():
         if echo:
             print(f"* {k}: {v}")
-        if ( ignore_None is True ) and ( v is None ):
+        if (ignore_None is True) and (v is None):
             continue
         else:
             updated[k] = v
@@ -103,3 +103,4 @@ def _time_format(
 
 # %%
 
+# %%
