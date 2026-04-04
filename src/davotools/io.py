@@ -206,4 +206,29 @@ def import_module_from_code(
 
 # %%
 
+# %% [markdown]
+## Body: cli
+
+# %%
+## to load command line interface inputs
+def load_cli(
+        parser: argparse.ArgumentParser,
+        in_IPy: bool,
+) -> dict:
+    """
+    a function to load command line interface inputs
+    Args:
+        parser: argparse.ArgumentParser # cli arguments
+        in_IPy: bool # whether being inside an IPython interface
+    Returns:
+        cli: dict
+    """
+    ##
+    cli = parser.parse_args() if not in_IPy \
+        else parser.parse_args("") # for Jupyter interface
+    cli = vars(cli)
+    return cli
+
+# %%
+
 # %%

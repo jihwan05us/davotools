@@ -12,7 +12,7 @@ Please install with the following shell command to install the package from GitH
 
 ```bash
 pip install git+https://github.com/jihwan05us/davotools.git
-# pip install --force-reinstall git+https://github.com/jihwan05us/davotools.git
+# pip install git+https://github.com/jihwan05us/davotools.git --force-reinstall --no-deps
 ```
 
 ### Loading
