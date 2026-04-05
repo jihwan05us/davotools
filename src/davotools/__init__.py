@@ -53,7 +53,7 @@ def initialize(
 
 # %%
 ## to initialize
-(module_path, module_dir) = initialize(echo=True)
+module_path, module_dir = initialize(echo=True)
 
 # %%
 

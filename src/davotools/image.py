@@ -114,7 +114,7 @@ def convert_shapely_to_numpy(
     ##
     for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
         coord = coords[i]
-        (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
+        h, v = skimage.draw.polygon( coord[:,0], coord[:,1] )
         ##
         for ii, hh in enumerate(h):
             vv = v[ii]
@@ -128,29 +128,33 @@ def convert_shapely_to_numpy(
     return mask
 
 # %%
+## worker for convert_multi_shapely_to_numpy
+def _convert_multi_shapely_to_numpy_worker(coords_items):
+    i, coord = coords_items
+    h, v = skimage.draw.polygon( coord[:,0], coord[:,1] )
+    return i, h, v
+
+# %%
 ## to convert shapely objects into a numpy array (mask) using multiprocessing
 def convert_multi_shapely_to_numpy(
         size: tuple[int, int],
         coords: dict[int, np.ndarray],
-        cpu_max: int = None,
-) -> np.ndarray[bool]:
+        cpu_max: int | None = None,
+) -> np.ndarray:
     """
     a function to convert shapely objects into a numpy array (mask) using multiprocessing
     Args:
         size: tuple[int, int] # the size of a binary mask (vertical*horizontal)
         coords: dict[int, np.ndarray] # output from convert_geojson_shapely
-        cpu_max: int = None # the maximum number of cpu cores for multiprocessing
+        cpu_max: int | None = None # the maximum number of cpu cores for multiprocessing
     Returns:
-        mask: np.ndarray[bool] # binary mask of the roi
+        mask: np.ndarray # integer mask of the roi (stores polygon index)
     """
-    mask = np.full(size, 0, dtype=np.int64)
+    mask = np.zeros(size, dtype=np.int64)
     ##
-    cpus = os.cpu_count()
-    cpus_use = cpus
-    if cpu_max is not None:
-        cpus_use = min(cpu_max, cpus-1)
-    cpus_use = max(cpus_use, 1)
-    print(f"-. total {cpus=} and {cpus_use=}")
+    cpus_all = os.cpu_count()
+    cpus_use = max( min(cpu_max, cpus_all - 1), 1 ) if cpu_max is not None else cpus_all
+    print(f"-. (cpus_all, cpus_use) = ({cpus_all}, {cpus_use})")
     ##
     with multiprocessing.Pool(cpus_use) as pool:
         results = pool.map( _convert_multi_shapely_to_numpy_worker, coords.items() )
@@ -163,11 +167,6 @@ def convert_multi_shapely_to_numpy(
         mask[v, h] = i
     ##
     return mask
-##
-def _convert_multi_shapely_to_numpy_worker(coords_items):
-    (i, coord) = coords_items
-    (h, v) = skimage.draw.polygon( coord[:,0], coord[:,1] )
-    return (i, h, v)
 
 # %%
 ## to convert a geojson file path into a numpy array (mask)
@@ -175,24 +174,24 @@ def convert_geojson_to_numpy(
         path: str,
         size: tuple[int, int],
         multi: int | bool = True,
-) -> tuple[ pd.DataFrame, np.ndarray[bool] ]:
+) -> tuple[ pd.DataFrame, np.ndarray ]:
     """
     a function to convert a geojson file path into a numpy array (mask)
     Args:
         path: str # a path to geojson object
         size: tuple[int, int] # the size of a numpy mask (vertical*horizontal)
-        multi: int | bool = True # whether to use multiprocessing
+        multi: int | bool = True # bool to toggle multiprocessing; int to set cpu count (bool checked first as bool is subclass of int)
     Returns:
         info: pd.DataFrame # information of every annotation
-        mask: np.ndarray[bool] # a binary mask
+        mask: np.ndarray # integer mask (stores polygon index)
     """
     with open(path) as f:
         G = geojson.load(f)
     ##
-    (info, _, coords) = convert_geojson_to_shapely(G)
+    info, _, coords = convert_geojson_to_shapely(G)
     if isinstance(multi, bool):
-        if multi == True:
-            mask = convert_multi_shapely_to_numpy( size, coords, max( 1, os.cpu_count()-1 ) )
+        if multi is True:
+            mask = convert_multi_shapely_to_numpy( size, coords, max( 1, os.cpu_count() - 1 ) )
         else:
             mask = convert_shapely_to_numpy(size, info, coords)
     elif isinstance(multi, int):
@@ -233,7 +232,7 @@ def generate_subinterval_1d_centered(
             # row: each grid
             # column: each grid's lower interval, higher interval, and length
     """
-    (interval_min, interval_max) = interval
+    interval_min, interval_max = interval
     if center is None:
         center = int( (interval_min + interval_max) / 2 )
     frame_low = int( frame / 2 )
@@ -322,9 +321,9 @@ def generate_patch_coords(
             # row: each patch
             # column: coordinates (top, bottom, left, right, height, width, edge)
     """
-    (image_h, image_w) = image_size
-    (patch_h, patch_w) = patch_size
-    (overlap_h, overlap_w) = patch_overlap
+    image_h, image_w = image_size
+    patch_h, patch_w = patch_size
+    overlap_h, overlap_w = patch_overlap
     ##
     center = (
         math.ceil(image_h / 2),

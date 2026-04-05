@@ -153,7 +153,7 @@ def write(
 def _write_tiff(
         path: str,
         image: np.ndarray,
-        channels: list[str] | None = None,
+        channel_names: list[str] | None = None,
         **kwargs
 ) -> None:
     """
@@ -161,17 +161,17 @@ def _write_tiff(
     Args:
         path: str # output path
         image: np.ndarray # image array (CYX for multi-channel, YX for single)
-        channels: list[str] | None = None # channel names for OME metadata
+        channel_names: list[str] | None = None # channel names for OME metadata
     Returns: None
     """
     if len(image.shape) > 2:
-        if channels is None:
+        if channel_names is None:
             tifffile.imwrite( path, image, metadata={
                 'axes': 'CYX',
             }, ome=True, **kwargs )
         else:
             tifffile.imwrite( path, image, metadata={
-                'axes': 'CYX', 'Channel': { 'Name': channels, },
+                'axes': 'CYX', 'Channel': {'Name': channel_names},
             }, ome=True, **kwargs )
     else:
         tifffile.imwrite(path, image, **kwargs)
