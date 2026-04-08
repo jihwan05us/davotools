@@ -1,13 +1,30 @@
-## Template from Gemini 3 (Fast)
+## Python
 __pycache__/
-*.py[cod]
-.venv/
-env/
+*.py[codz]
+
+## C
+*.so
+
+## Distribution / packaging
 build/
 dist/
 *.egg-info/
+*.egg
+
+## Unit test / coverage reports
 .pytest_cache/
+
+## Jupyter Notebook
+.ipynb_checkpoints/
+
+## Environments
+.env
+.envrc
+.venv/
+env/
+
+## macOS
 .DS_Store
 
-##
-
+## local backup
+backup/

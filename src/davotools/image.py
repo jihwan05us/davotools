@@ -138,6 +138,7 @@ def _convert_multi_shapely_to_numpy_worker(coords_items):
 ## to convert shapely objects into a numpy array (mask) using multiprocessing
 def convert_multi_shapely_to_numpy(
         size: tuple[int, int],
+        info: pd.DataFrame,
         coords: dict[int, np.ndarray],
         cpu_max: int | None = None,
 ) -> np.ndarray:
@@ -145,6 +146,7 @@ def convert_multi_shapely_to_numpy(
     a function to convert shapely objects into a numpy array (mask) using multiprocessing
     Args:
         size: tuple[int, int] # the size of a binary mask (vertical*horizontal)
+        info: pd.DataFrame # output from convert_geojson_shapely
         coords: dict[int, np.ndarray] # output from convert_geojson_shapely
         cpu_max: int | None = None # the maximum number of cpu cores for multiprocessing
     Returns:
@@ -164,7 +166,7 @@ def convert_multi_shapely_to_numpy(
         h[ h >= mask.shape[1] ] = mask.shape[1] - 1
         v[v < 0] = 0
         v[ v >= mask.shape[0] ] = mask.shape[0] - 1
-        mask[v, h] = i
+        mask[v, h] = info.loc[i, 'feat_index']
     ##
     return mask
 
@@ -191,11 +193,11 @@ def convert_geojson_to_numpy(
     info, _, coords = convert_geojson_to_shapely(G)
     if isinstance(multi, bool):
         if multi is True:
-            mask = convert_multi_shapely_to_numpy( size, coords, max( 1, os.cpu_count() - 1 ) )
+            mask = convert_multi_shapely_to_numpy( size, info, coords, max( 1, os.cpu_count() - 1 ) )
         else:
             mask = convert_shapely_to_numpy(size, info, coords)
     elif isinstance(multi, int):
-        mask = convert_multi_shapely_to_numpy(size, coords, multi)
+        mask = convert_multi_shapely_to_numpy(size, info, coords, multi)
     else:
         msg = f"*** the core count for multiprocessing is not well defined!!!"
         raise ValueError(msg)
