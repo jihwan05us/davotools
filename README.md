@@ -33,7 +33,7 @@ Please check docstrings (`print(*.__doc__)`) for details.
 davotools.io.read
 davotools.io.write
 davotools.io.import_module_from_code
-davotools.io.load_CLI
+davotools.io.load_cli
 
 ## checking tools
 davotools.view.list
@@ -42,7 +42,15 @@ davotools.view.pd
 
 ## image analysis tools
 davotools.image.convert_geojson_to_numpy
+davotools.image.convert_geojson_to_shapely
+davotools.image.convert_shapely_to_numpy
+davotools.image.convert_multi_shapely_to_numpy
 davotools.image.generate_patch_coords
+davotools.image.generate_subinterval_1d_centered
+
+## minor tools
+davotools.minor.update_dict
+davotools.minor.time_keep
 ```
 
 ### License
