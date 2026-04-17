@@ -121,6 +121,8 @@ def write(
         data.to_csv(path, **kwargs)
     elif extension == 'tsv':
         data.to_csv(path, sep='\t', **kwargs)
+    elif extension == 'feather':
+        data.to_feather(path, **kwargs)
     ##
     elif extension in ['jpeg', 'jpg']:
         plt.imsave(path, data)

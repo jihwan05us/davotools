@@ -18,7 +18,7 @@ minor = minor
 from davotools import io
 io = io
 ##
-from davotools import image
+from davotools import image_v1 as image
 image = image
 
 # %%
