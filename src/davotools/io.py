@@ -4,14 +4,15 @@
 # %%
 ## imports
 import argparse, datetime, json, os, pickle, types
+import importlib.util
 import xml.etree.ElementTree
 ##
-import geojson, tifffile, yaml
-import importlib.util
-import PIL.Image
+import geojson
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import skimage.io
+import tifffile
+import yaml
 
 # %%
 
@@ -34,18 +35,17 @@ def read(
     Returns:
         data: (object) # data object read from the file
     """
-    extension = path.split('.')[-1]
+    filename = path.split('/')[-1]
+    if '.' not in filename:
+        _msg = f"*** davotools.io.read(): no file extension in '{path}'"
+        raise ValueError(_msg)
+    extension = filename.split('.')[-1]
     ##
-    if extension is None:
-        msg = "*** davotools.io.read(): an input path with unassigned extension"
-        raise Exception(msg)
-    ##
-    elif extension == 'pkl':
+    if extension == 'pkl':
         with open(path, 'rb') as f:
             data = pickle.load(f, **kwargs)
     elif extension == 'npy':
-        with open(path, 'rb') as f:
-            data = np.load(f, **kwargs)
+        data = np.load(path, **kwargs)
     ##
     elif extension == 'csv':
         data = pd.read_csv(path, **kwargs)
@@ -57,7 +57,7 @@ def read(
         data = pd.read_feather(path, **kwargs)
     ##
     elif extension in ['jpg', 'jpeg', 'png']:
-        data = plt.imread(path, **kwargs)
+        data = skimage.io.imread(path, **kwargs)
     elif extension in ['tiff', 'tif', 'qptiff']:
         data = tifffile.imread(path, **kwargs)
     ##
@@ -66,7 +66,7 @@ def read(
             data = json.load(f, **kwargs)
     elif extension in ['yaml', 'yml']:
         with open(path, 'r') as f:
-            data = yaml.safe_load(f, **kwargs)
+            data = yaml.safe_load(f)
     elif extension == 'geojson':
         with open(path, 'r') as f:
             data = geojson.load(f, **kwargs)
@@ -74,8 +74,8 @@ def read(
             data = xml.etree.ElementTree.parse(path, **kwargs)
     ##
     else:
-        msg = "*** Please check the extension."
-        raise Exception(msg)
+        _msg = "*** Please check the extension."
+        raise Exception(_msg)
     ##
     if echo:
         print(f"-. path loaded: {path}")
@@ -83,7 +83,6 @@ def read(
 
 # %%
 ## to write data into a file
-##
 def write(
         path: str,
         data: object,
@@ -99,23 +98,21 @@ def write(
         **kwargs
     Returns: None
     """
-    path_dir = path.split('/')
-    path_dir = '/'.join( path_dir[:-1] )
-    os.makedirs(path_dir, exist_ok=True)
+    path_dir = os.path.dirname(path)
+    if path_dir:
+        os.makedirs(path_dir, exist_ok=True)
     ##
     file = path.split('/')[-1]
+    if '.' not in file:
+        _msg = f"*** davotools.io.write(): no file extension in '{path}'"
+        raise ValueError(_msg)
     extension = file.split('.')[-1]
     ##
-    if extension is None:
-        msg = "*** davotools.io.write(): an output path with unassigned extension"
-        raise Exception(msg)
-    ##
-    elif extension == 'pkl':
+    if extension == 'pkl':
         with open(path, 'wb') as f:
             pickle.dump(data, f)
     elif extension == 'npy':
-        with open(path, 'wb') as f:
-            np.save(f, data)
+        np.save(path, data, **kwargs)
     ##
     elif extension == 'csv':
         data.to_csv(path, **kwargs)
@@ -124,16 +121,14 @@ def write(
     elif extension == 'feather':
         data.to_feather(path, **kwargs)
     ##
-    elif extension in ['jpeg', 'jpg']:
-        plt.imsave(path, data)
-    elif extension == 'png':
-        plt.imsave(path, data)
+    elif extension in ['jpeg', 'jpg', 'png']:
+        skimage.io.imsave(path, data, **kwargs)
     elif extension in ['tiff', 'tif']:
         _write_tiff(path, data, **kwargs)
     ##
     elif extension == 'json':
         with open(path, 'w') as f:
-            json.dump(data, f, indent=4)
+            json.dump(data, f, indent=4, **kwargs)
     elif extension == 'yaml':
         with open(path, 'w') as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
@@ -142,8 +137,8 @@ def write(
             f.write(data)
     ##
     else:
-        msg = "*** Please check the extension."
-        raise Exception(msg)
+        _msg = "*** Please check the extension."
+        raise Exception(_msg)
     ##
     if echo:
         time_now = datetime.datetime.now()
@@ -166,6 +161,10 @@ def _write_tiff(
         channel_names: list[str] | None = None # channel names for OME metadata
     Returns: None
     """
+    if len(image.shape) == 3 and image.shape[2] in [3, 4]:
+        _msg = f"*** davotools.io._write_tiff(): RGB/RGBA images (YXC) are not supported."
+        _msg += f" Use jpg/png instead."
+        raise ValueError(_msg)
     if len(image.shape) > 2:
         if channel_names is None:
             tifffile.imwrite( path, image, metadata={
@@ -198,8 +197,8 @@ def import_module_from_code(
         module: types.ModuleType
     """
     if not os.path.exists(path):
-        msg = f"*** davotools.module.import_module_from_code(): no such {path}"
-        raise ValueError(msg)
+        _msg = f"*** davotools.module.import_module_from_code(): no such {path}"
+        raise ValueError(_msg)
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -230,8 +229,6 @@ def load_cli(
         else parser.parse_args("") # for Jupyter interface
     cli = vars(cli)
     return cli
-
-# %%
 
 # %%
 

@@ -2,7 +2,7 @@
 ## Header
 
 # %%
-## basic imports
+## imports
 import pandas as pd
 ##
 try:
@@ -13,22 +13,19 @@ except ImportError:
 # %%
 
 # %% [markdown]
-## Body
-
-# %% [markdown]
 ## Body: view
 
 # %%
 ## to view a list
 def view_list(
         l: list,
-        k: str = None,
+        k: str | None = None,
 ) -> None:
     """
     a function to view a list
     Args:
         l: list # a list
-        k: str = None # a keyword describing 'l'
+        k: str | None = None # a keyword describing 'l'
     Returns: None
     """
     if k is not None:
@@ -42,14 +39,14 @@ def view_list(
 ## to view a dict
 def view_dict(
         d: dict,
-        k: str = None,
+        k: str | None = None,
         i: int = 0,
 ) -> None:
     """
     a function to view a dict
     Args:
         d: dict # a dictionary
-        k: str = None # a keyword describing 'd'
+        k: str | None = None # a keyword describing 'd'
         i: int = 0 # a layer index for checking depth
     Returns: None
     """
@@ -75,17 +72,19 @@ def view_dict(
 ## to view a pandas table
 def view_pd(
         table: pd.DataFrame,
-        k: str = None,
-        iloc: list[int] = [0,1,-1],
+        k: str | None = None,
+        iloc: list[int] | None = None,
 ) -> None:
     """
     a function to view a pandas table
     Args:
         table: pd.DataFrame # a pandas table
-        k: str = None # a keyword describing 'table'
-        iloc: list[int] = [0,1,-1] # a location index
+        k: str | None = None # a keyword describing 'table'
+        iloc: list[int] | None = None # a location index (default: [0,1,-1])
     Returns: None
     """
+    if iloc is None:
+        iloc = [0, 1, -1]
     if k is None:
         k = 'table'
     print(f"-. {k}: { type(table) } {table.shape}")
@@ -95,13 +94,6 @@ def view_pd(
         display(table)
     ##
     return None
-
-# %%
-
-# %% [markdown]
-## Footer
-
-# %%
 
 # %%
 

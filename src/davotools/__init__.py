@@ -2,8 +2,8 @@
 ## Header
 
 # %%
-## basic imports
-import os, types
+## imports
+import os, sys, types
 
 # %%
 
@@ -12,14 +12,8 @@ import os, types
 
 # %%
 ## davotools submodules
-from davotools import minor
-minor = minor
-##
-from davotools import io
-io = io
-##
-from davotools import image_v1 as image
-image = image
+from davotools import minor, io
+from davotools import image
 
 # %%
 ## davotools submodule: view
@@ -33,17 +27,15 @@ view.pd = _view.view_pd
 
 # %%
 ## initializer
-def initialize(
-        echo: bool = False
+def _set_path(
+        echo: bool = True
 ) -> tuple[str, str]:
     """
     Args:
-        echo: bool = False # whether to show internal details
+        echo: bool = True # whether to show internal details
     Returns:
         module_path: str # the full path of the module
         module_dir: str # the directory of module_path
-    Raises:
-        None
     """
     module_path = os.path.abspath(__file__)
     module_dir = os.path.dirname(module_path)
@@ -52,15 +44,19 @@ def initialize(
     return module_path, module_dir
 
 # %%
+## to load image_old as image
+def load_image_old() -> None:
+    """
+    a function to replace davotools.image with davotools.image_old
+    Args: None
+    Returns: None
+    """
+    import davotools.image_old as _image_old
+    sys.modules[__name__].image = _image_old
+
+# %%
 ## to initialize
-module_path, module_dir = initialize(echo=True)
-
-# %%
-
-# %% [markdown]
-## Footer
-
-# %%
+module_path, module_dir = _set_path()
 
 # %%
 

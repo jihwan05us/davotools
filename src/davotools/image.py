@@ -2,12 +2,15 @@
 ## Header
 
 # %%
-## basic imports
+## imports
 import math, os
 import multiprocessing
 ##
+import geojson
 import numpy as np
 import pandas as pd
+import shapely.geometry
+import skimage.draw
 ##
 from tqdm import tqdm
 ##
@@ -15,12 +18,6 @@ try:
     from IPython.display import display
 except ImportError:
     display = print
-
-# %%
-## additional imports
-import geojson
-import shapely.geometry
-import skimage.draw
 
 # %%
 
@@ -31,33 +28,29 @@ import skimage.draw
 ## to convert a geojson object into shapely objects
 def convert_geojson_to_shapely(
         G: geojson.FeatureCollection,
-) -> tuple[ pd.DataFrame, dict, dict[int, np.ndarray] ]:
+) -> tuple[ pd.DataFrame, dict ]:
     """
     a function to convert a geojson object into shapely objects
     Args:
         G: geojson.FeatureCollection # a geojson object imported by geojson.load()
     Returns:
         info: pd.DataFrame # information of every annotation
-        shapes: dict # shapely objects of every annotation
-        coords: dict[ int, np.ndarray ] # coordinates of every annotation
+        shapes: dict[int, shapely.geometry] # shapely objects keyed by feat_index (1-based)
     """
     info = pd.DataFrame( columns=[
         'feat_index', 'feat_type', 'feat_id',
         'geo_type', 'prop_type', 'prop_name', 'prop_class',
     ] )
     shapes = {}
-    coords = {}
     ##
-    i = 0
     for i0, v0 in enumerate( G['features'] ):
-        feat_index = i0
+        feat_index = i0 + 1
         feat = v0
         feat_type = feat['type'] if 'type' in feat.keys() else None
         feat_id = feat['id'] if 'id' in feat.keys() else None
         geo = feat['geometry'] if 'geometry' in feat.keys() else None
         prop = feat['properties'] if 'properties' in feat.keys() else None
         ##
-        geo_coord = geo['coordinates'] if 'coordinates' in geo.keys() else None
         geo_type = geo['type'] if 'type' in geo.keys() else None
         ##
         prop_type = prop['objectType'] if 'objectType' in prop.keys() else None
@@ -66,91 +59,118 @@ def convert_geojson_to_shapely(
             if 'classification' in prop.keys()
             else None )
         ##
-        info_new = {}
-        info_new['feat_index'] = feat_index + 1
-        info_new['feat_type'] = feat_type
-        info_new['feat_id'] = feat_id
-        info_new['geo_type'] = geo_type
-        info_new['prop_type'] = prop_type
-        info_new['prop_name'] = prop_name
-        info_new['prop_class'] = prop_class
+        info_new = {
+            'feat_index': feat_index,
+            'feat_type': feat_type,
+            'feat_id': feat_id,
+            'geo_type': geo_type,
+            'prop_type': prop_type,
+            'prop_name': prop_name,
+            'prop_class': prop_class,
+        }
+        info.loc[ len(info) ] = info_new
         shapes[feat_index] = shapely.geometry.shape(geo)
-        ##
-        if geo_type == 'Polygon':
-            for _, v1 in enumerate(geo_coord):
-                info.loc[i] = info_new
-                coords[i] = np.array(v1).astype(int)
-                ##
-                i = i + 1
-        elif geo_type == 'MultiPolygon':
-            for _, v1 in enumerate(geo_coord):
-                for _, v2 in enumerate(v1):
-                    info.loc[i] = info_new
-                    coords[i] = np.array(v2).astype(int)
-                    ##
-                    i = i + 1
-        else:
-            print(info_new)
     ##
-    return info, shapes, coords
+    return info, shapes
+
+# %%
+## (internal) to fill a single shapely Polygon into a mask array
+def _fill_polygon(
+        mask: np.ndarray,
+        poly: shapely.geometry.Polygon,
+        feat_index: int,
+) -> None:
+    """
+    an internal function to fill a shapely Polygon into a mask array.
+    Exterior ring is filled with feat_index; interior rings (holes) are filled with 0.
+    Args:
+        mask: np.ndarray # (H, W) int array, modified in place
+        poly: shapely.geometry.Polygon
+        feat_index: int # value to write for the exterior
+    Returns: None
+    """
+    # exterior ring; GeoJSON coords are (x, y) = (col, row)
+    coords = np.array(poly.exterior.coords)
+    rows = coords[:, 1]
+    cols = coords[:, 0]
+    rr, cc = skimage.draw.polygon(rows, cols, shape=mask.shape)
+    mask[rr, cc] = feat_index
+    ##
+    # interior rings (holes): reset to background (0)
+    for interior in poly.interiors:
+        coords_h = np.array(interior.coords)
+        rows_h = coords_h[:, 1]
+        cols_h = coords_h[:, 0]
+        rr_h, cc_h = skimage.draw.polygon(rows_h, cols_h, shape=mask.shape)
+        mask[rr_h, cc_h] = 0
 
 # %%
 ## to convert shapely objects into a numpy array (mask)
 def convert_shapely_to_numpy(
         size: tuple[int, int],
         info: pd.DataFrame,
-        coords: dict[int, np.ndarray],
-) -> np.ndarray[bool]:
+        shapes: dict,
+) -> np.ndarray:
     """
     a function to convert shapely objects into a numpy array (mask)
     Args:
-        size: tuple[int, int] # the size of a binary mask (vertical*horizontal)
-        info: pd.DataFrame # output from convert_geojson_shapely
-        coords: dict[int, np.ndarray] # output from convert_geojson_shapely
+        size: tuple[int, int] # the size of the mask (H, W)
+        info: pd.DataFrame # output from convert_geojson_to_shapely
+        shapes: dict # output from convert_geojson_to_shapely
     Returns:
-        mask: np.ndarray[bool] # binary mask of the roi
+        mask: np.ndarray # integer mask (stores feat_index per pixel)
     """
-    mask = np.full(size, 0, dtype=int)
+    mask = np.zeros(size, dtype=int)
     ##
-    for i, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
-        coord = coords[i]
-        h, v = skimage.draw.polygon( coord[:,0], coord[:,1] )
+    for _, info_row in tqdm( info.iterrows(), total=info.shape[0], ncols=50 ):
+        feat_index = info_row['feat_index']
+        shape = shapes[feat_index]
         ##
-        for ii, hh in enumerate(h):
-            vv = v[ii]
-            ##
-            if (vv < 0) or ( vv >= mask.shape[0] ):
-                continue
-            if (hh < 0) or ( hh >= mask.shape[1] ):
-                continue
-            mask[vv, hh] = info_row['feat_index']
+        if isinstance(shape, shapely.geometry.Polygon):
+            _fill_polygon(mask, shape, feat_index)
+        elif isinstance(shape, shapely.geometry.MultiPolygon):
+            for poly in shape.geoms:
+                _fill_polygon(mask, poly, feat_index)
     ##
     return mask
 
 # %%
 ## worker for convert_multi_shapely_to_numpy
-def _convert_multi_shapely_to_numpy_worker(coords_items):
-    i, coord = coords_items
-    h, v = skimage.draw.polygon( coord[:,0], coord[:,1] )
-    return i, h, v
+def _convert_multi_shapely_to_numpy_worker(args):
+    feat_index, shape, size = args
+    exterior_list = []
+    hole_list = []
+    ##
+    polys = list(shape.geoms) if isinstance(shape, shapely.geometry.MultiPolygon) else [shape]
+    for poly in polys:
+        coords = np.array(poly.exterior.coords)
+        rr, cc = skimage.draw.polygon(coords[:, 1], coords[:, 0], shape=size)
+        exterior_list.append((rr, cc))
+        ##
+        for interior in poly.interiors:
+            coords_h = np.array(interior.coords)
+            rr_h, cc_h = skimage.draw.polygon(coords_h[:, 1], coords_h[:, 0], shape=size)
+            hole_list.append((rr_h, cc_h))
+    ##
+    return feat_index, exterior_list, hole_list
 
 # %%
 ## to convert shapely objects into a numpy array (mask) using multiprocessing
 def convert_multi_shapely_to_numpy(
         size: tuple[int, int],
         info: pd.DataFrame,
-        coords: dict[int, np.ndarray],
+        shapes: dict,
         cpu_max: int | None = None,
 ) -> np.ndarray:
     """
     a function to convert shapely objects into a numpy array (mask) using multiprocessing
     Args:
-        size: tuple[int, int] # the size of a binary mask (vertical*horizontal)
-        info: pd.DataFrame # output from convert_geojson_shapely
-        coords: dict[int, np.ndarray] # output from convert_geojson_shapely
+        size: tuple[int, int] # the size of the mask (H, W)
+        info: pd.DataFrame # output from convert_geojson_to_shapely
+        shapes: dict # output from convert_geojson_to_shapely
         cpu_max: int | None = None # the maximum number of cpu cores for multiprocessing
     Returns:
-        mask: np.ndarray # integer mask of the roi (stores polygon index)
+        mask: np.ndarray # integer mask (stores feat_index per pixel)
     """
     mask = np.zeros(size, dtype=np.int64)
     ##
@@ -158,15 +178,19 @@ def convert_multi_shapely_to_numpy(
     cpus_use = max( min(cpu_max, cpus_all - 1), 1 ) if cpu_max is not None else cpus_all
     print(f"-. (cpus_all, cpus_use) = ({cpus_all}, {cpus_use})")
     ##
-    with multiprocessing.Pool(cpus_use) as pool:
-        results = pool.map( _convert_multi_shapely_to_numpy_worker, coords.items() )
+    args = [
+        ( row['feat_index'], shapes[ row['feat_index'] ], size )
+        for _, row in info.iterrows()
+    ]
     ##
-    for i, h, v in results:
-        h[h < 0] = 0
-        h[ h >= mask.shape[1] ] = mask.shape[1] - 1
-        v[v < 0] = 0
-        v[ v >= mask.shape[0] ] = mask.shape[0] - 1
-        mask[v, h] = info.loc[i, 'feat_index']
+    with multiprocessing.get_context('fork').Pool(cpus_use) as pool:
+        results = pool.map(_convert_multi_shapely_to_numpy_worker, args)
+    ##
+    for feat_index, exterior_list, hole_list in results:
+        for rr, cc in exterior_list:
+            mask[rr, cc] = feat_index
+        for rr, cc in hole_list:
+            mask[rr, cc] = 0
     ##
     return mask
 
@@ -181,33 +205,33 @@ def convert_geojson_to_numpy(
     a function to convert a geojson file path into a numpy array (mask)
     Args:
         path: str # a path to geojson object
-        size: tuple[int, int] # the size of a numpy mask (vertical*horizontal)
+        size: tuple[int, int] # the size of a numpy mask (H, W)
         multi: int | bool = True # bool to toggle multiprocessing; int to set cpu count (bool checked first as bool is subclass of int)
     Returns:
         info: pd.DataFrame # information of every annotation
-        mask: np.ndarray # integer mask (stores polygon index)
+        mask: np.ndarray # integer mask (stores feat_index per pixel)
     """
     with open(path) as f:
         G = geojson.load(f)
     ##
-    info, _, coords = convert_geojson_to_shapely(G)
+    info, shapes = convert_geojson_to_shapely(G)
     if isinstance(multi, bool):
         if multi is True:
-            mask = convert_multi_shapely_to_numpy( size, info, coords, max( 1, os.cpu_count() - 1 ) )
+            mask = convert_multi_shapely_to_numpy( size, info, shapes, max( 1, os.cpu_count() - 1 ) )
         else:
-            mask = convert_shapely_to_numpy(size, info, coords)
+            mask = convert_shapely_to_numpy(size, info, shapes)
     elif isinstance(multi, int):
-        mask = convert_multi_shapely_to_numpy(size, info, coords, multi)
+        mask = convert_multi_shapely_to_numpy(size, info, shapes, multi)
     else:
-        msg = f"*** the core count for multiprocessing is not well defined!!!"
-        raise ValueError(msg)
+        _msg = f"*** the core count for multiprocessing is not well defined!!!"
+        raise ValueError(_msg)
     ##
     return info, mask
 
 # %%
 
 # %% [markdown]
-## Body: annotation
+## Body: patch
 
 # %%
 ## to generate equal length subintervals from a 1d interval
@@ -215,10 +239,9 @@ def generate_subinterval_1d_centered(
         interval: tuple[int,int],
         size: int = 256,
         frame: int = 0,
-        center: int = None,
+        center: int | None = None,
         patch_count_limit_max: int = 1000,
         echo: bool = False,
-        **kwargs
 ) -> pd.DataFrame:
     """
     a function to generate equal length subintervals from a 1d interval
@@ -226,7 +249,7 @@ def generate_subinterval_1d_centered(
         interval: tuple[int,int] # interval to be split into grids
         size: int = 256 # grid size
         frame: int = 0 # frame for overlap between a pair of consecutive grids
-        center: int = None # origin on which grids will span out
+        center: int | None = None # origin on which grids will span out
         patch_count_limit_max: int = 1000 # ( maximum size / 2 ) of grids
         echo: bool = False # whether to print internal details
     Returns:
@@ -241,9 +264,9 @@ def generate_subinterval_1d_centered(
     frame_high = frame - frame_low
     if echo:
         print(f"-. details:")
-        print(f"* {interval_min = } & {interval_max = }")
-        print(f"* {center = }")
-        print(f"* {frame = } & {frame_low = } & {frame_high = }")
+        print(f"-. {interval_min = } & {interval_max = }")
+        print(f"-. {center = }")
+        print(f"-. {frame = } & {frame_low = } & {frame_high = }")
     ##
     grids = pd.DataFrame()
     ##
@@ -261,7 +284,7 @@ def generate_subinterval_1d_centered(
             grids = pd.concat( [grids, new], axis=1, ignore_index=True )
             ##
             if high > interval_max:
-                break 
+                break
             low = high - frame
             i = i + 1
     if echo:
@@ -281,7 +304,7 @@ def generate_subinterval_1d_centered(
             grids = pd.concat( [grids, new], axis=1, ignore_index=True )
             ##
             if low < interval_min:
-                break 
+                break
             high = low + frame
             i = i + 1
     if echo:
@@ -363,8 +386,6 @@ def generate_patch_coords(
     if echo:
         display(coords)
     return coords
-
-# %%
 
 # %%
 
