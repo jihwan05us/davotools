@@ -129,7 +129,7 @@ def write(
             _msg += f" may lose data when saving as {extension}."
             _msg += f" Convert to uint8 or uint16 first."
             raise ValueError(_msg)
-        skimage.io.imsave(path, data, **kwargs)
+        skimage.io.imsave(path, data, check_contrast=False, **kwargs)
     elif extension in ['tiff', 'tif']:
         _write_tiff(path, data, **kwargs)
     ##
