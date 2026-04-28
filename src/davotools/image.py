@@ -170,7 +170,7 @@ def convert_shapely_to_numpy(
     ##
     if cpu_max is None or cpu_max <= 1:
         ITER = tqdm( info.iterrows(), total=info.shape[0], ncols=50 )
-    for _, info_row in ITER:
+        for _, info_row in ITER:
             feat_index = info_row['feat_index']
             shape = shapes[feat_index]
             ##
