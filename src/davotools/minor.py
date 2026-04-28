@@ -15,14 +15,14 @@ import datetime
 def update_dict(
         orig: dict,
         new: dict | None = None,
-        ignore_None: bool = False,
+        ignore_none: bool = False,
 ) -> dict:
     """
     a function to update values of a dictionary
     Args:
         orig: dict # the original dict to update
         new: dict | None = None # new dict to update
-        ignore_None: bool = False # whether to ignore updating None
+        ignore_none: bool = False # whether to ignore updating None
     Returns:
         updated: dict
     """
@@ -30,7 +30,7 @@ def update_dict(
     if new is None:
         return updated
     for k, v in new.items():
-        if (ignore_None is True) and (v is None):
+        if (ignore_none is True) and (v is None):
             continue
         else:
             updated[k] = v
@@ -78,14 +78,14 @@ def time_keep(
     return time_return
 
 # %%
-## to change the format of a datetime object into str
+## (internal) to change the format of a datetime object into str
 def _time_format(
         time: datetime.datetime,
 ) -> str:
     """
     a function to change the format of a datetime object into str
     Args:
-        time: datetime # the time in datetime format
+        time: datetime.datetime # the time in datetime format
     Returns:
         time_form: str # the time in str (%Y-%m-%d %H:%M:%S)
     """

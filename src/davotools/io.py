@@ -71,11 +71,11 @@ def read(
         with open(path, 'r') as f:
             data = geojson.load(f, **kwargs)
     elif extension == 'annotations':
-            data = xml.etree.ElementTree.parse(path, **kwargs)
+        data = xml.etree.ElementTree.parse(path, **kwargs)
     ##
     else:
         _msg = "*** Please check the extension."
-        raise Exception(_msg)
+        raise ValueError(_msg)
     ##
     if echo:
         print(f"-. path loaded: {path}")
@@ -122,6 +122,13 @@ def write(
         data.to_feather(path, **kwargs)
     ##
     elif extension in ['jpeg', 'jpg', 'png']:
+        if isinstance(data, np.ndarray) and data.dtype not in [
+            np.uint8, np.uint16
+        ]:
+            _msg = f"*** davotools.io.write(): dtype '{data.dtype}'"
+            _msg += f" may lose data when saving as {extension}."
+            _msg += f" Convert to uint8 or uint16 first."
+            raise ValueError(_msg)
         skimage.io.imsave(path, data, **kwargs)
     elif extension in ['tiff', 'tif']:
         _write_tiff(path, data, **kwargs)
@@ -138,7 +145,7 @@ def write(
     ##
     else:
         _msg = "*** Please check the extension."
-        raise Exception(_msg)
+        raise ValueError(_msg)
     ##
     if echo:
         time_now = datetime.datetime.now()
@@ -146,7 +153,7 @@ def write(
         print(f"-. path saved [{time_now_form}]: {path}")
 
 # %%
-## to write a image file (.tiff)
+## (internal) to write an image file (.tiff)
 def _write_tiff(
         path: str,
         image: np.ndarray,
@@ -154,7 +161,7 @@ def _write_tiff(
         **kwargs
 ) -> None:
     """
-    a function to write a image file (.tiff)
+    a function to write an image file (.tiff)
     Args:
         path: str # output path
         image: np.ndarray # image array (CYX for multi-channel, YX for single)
@@ -162,8 +169,8 @@ def _write_tiff(
     Returns: None
     """
     if len(image.shape) == 3 and image.shape[2] in [3, 4]:
-        _msg = f"*** davotools.io._write_tiff(): RGB/RGBA images (YXC) are not supported."
-        _msg += f" Use jpg/png instead."
+        _msg = "*** davotools.io._write_tiff(): RGB/RGBA images (YXC)"
+        _msg += " are not supported. Use jpg/png instead."
         raise ValueError(_msg)
     if len(image.shape) > 2:
         if channel_names is None:
@@ -224,7 +231,6 @@ def load_cli(
     Returns:
         cli: dict
     """
-    ##
     cli = parser.parse_args() if not in_IPy \
         else parser.parse_args("") # for Jupyter interface
     cli = vars(cli)

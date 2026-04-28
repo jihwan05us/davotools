@@ -26,11 +26,12 @@ view.dict = _view.view_dict
 view.pd = _view.view_pd
 
 # %%
-## initializer
+## (internal) to set the module path
 def _set_path(
         echo: bool = True
 ) -> tuple[str, str]:
     """
+    an internal function to set the module path
     Args:
         echo: bool = True # whether to show internal details
     Returns:
@@ -55,7 +56,7 @@ def load_image_old() -> None:
     sys.modules[__name__].image = _image_old
 
 # %%
-## to initialize
+## initialization
 module_path, module_dir = _set_path()
 
 # %%
