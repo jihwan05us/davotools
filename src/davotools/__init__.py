@@ -52,7 +52,12 @@ def load_image_old() -> None:
     Args: None
     Returns: None
     """
-    import davotools.image_old as _image_old
+    import importlib.util as _ilu
+    import os as _os
+    _path = _os.path.join( _os.path.dirname(__file__), '_backup', 'image_old--20260428.py' )
+    _spec = _ilu.spec_from_file_location('davotools.image_old', _path)
+    _image_old = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(_image_old)
     sys.modules[__name__].image = _image_old
 
 # %%

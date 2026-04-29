@@ -1,5 +1,13 @@
 # The current version
 
+### 20260429 v0.2.0
+-. image.py: robust geojson handling, merged shapely-to-numpy functions, bug fix in if/else structure
+-. image.py: mask dtype int32, tqdm ncols=70
+-. io.py: dtype safety check for png/jpg, ValueError for RGB tiff, unified error types
+-. minor.py: ignore_None >> ignore_none
+-. image_old.py >> _backup/image_old--20260428.py
+-. style fixes across all modules
+
 ### 20260328 v0.1.0
 -. Suggestions from Claude Code are reflected.
 -. Some minor elements (such as doctrings) are fixed.

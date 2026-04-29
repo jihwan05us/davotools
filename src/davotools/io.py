@@ -8,6 +8,7 @@ import importlib.util
 import xml.etree.ElementTree
 ##
 import geojson
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import skimage.io
@@ -121,7 +122,9 @@ def write(
     elif extension == 'feather':
         data.to_feather(path, **kwargs)
     ##
-    elif extension in ['jpeg', 'jpg', 'png']:
+    elif extension == 'png':
+        plt.imsave(path, data, **kwargs)
+    elif extension in ['jpeg', 'jpg']:
         if isinstance(data, np.ndarray) and data.dtype not in [
             np.uint8, np.uint16
         ]:

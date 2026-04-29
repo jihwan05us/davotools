@@ -169,7 +169,7 @@ def convert_shapely_to_numpy(
     mask = np.zeros(size, dtype=np.int32)
     ##
     if cpu_max is None or cpu_max <= 1:
-        ITER = tqdm( info.iterrows(), total=info.shape[0], ncols=50 )
+        ITER = tqdm( info.iterrows(), total=info.shape[0], ncols=70 )
         for _, info_row in ITER:
             feat_index = info_row['feat_index']
             shape = shapes[feat_index]
@@ -192,7 +192,7 @@ def convert_shapely_to_numpy(
         with multiprocessing.get_context('fork').Pool(cpus_use) as pool:
             ITER = tqdm(
                 pool.imap( _convert_shapely_to_numpy_worker, args ),
-                total=len(args),
+                total=len(args), ncols=70,
             )
             results = list(ITER)
         ##
