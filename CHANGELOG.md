@@ -1,5 +1,8 @@
 # The current version
 
+### 20260505 v0.2.1
+-. io.py: parquet read/write support
+
 ### 20260429 v0.2.0
 -. image.py: robust geojson handling, merged shapely-to-numpy functions, bug fix in if/else structure
 -. image.py: mask dtype int32, tqdm ncols=70

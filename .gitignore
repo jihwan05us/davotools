@@ -2,30 +2,29 @@
 *.so
 
 ## Python
-__pycache__
+__pycache__/
 *.py[codz]
-.pytest_cache
-.ipynb_checkpoints
+.pytest_cache/
+.ipynb_checkpoints/
 
 ## Distribution & packaging
-build
-dist
-*.egg-info
+build/
+dist/
+*.egg-info/
 *.egg
 
 ## Environments
 .env
 .envrc
-.venv
-env
+.venv/
+env/
 
 ## Other
 .DS_Store
-.claude
-.vscode
+.claude/
+.vscode/
 
-## Local backup
-backup
-_backup
-old
-_old
+## Local backup and test
+_backup/
+_old/
+_test/

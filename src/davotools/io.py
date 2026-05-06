@@ -56,6 +56,8 @@ def read(
         data = pd.read_excel(path, **kwargs)
     elif extension == 'feather':
         data = pd.read_feather(path, **kwargs)
+    elif extension == 'parquet':
+        data = pd.read_parquet(path, **kwargs)
     ##
     elif extension in ['jpg', 'jpeg', 'png']:
         data = skimage.io.imread(path, **kwargs)
@@ -121,6 +123,8 @@ def write(
         data.to_csv(path, sep='\t', **kwargs)
     elif extension == 'feather':
         data.to_feather(path, **kwargs)
+    elif extension == 'parquet':
+        data.to_parquet(path, **kwargs)
     ##
     elif extension == 'png':
         plt.imsave(path, data, **kwargs)
