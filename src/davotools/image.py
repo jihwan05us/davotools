@@ -3,18 +3,15 @@
 
 # %%
 ## imports
-import math, os
-import multiprocessing
+import math, multiprocessing, os
 ##
 import geojson
-import numpy as np
-import pandas as pd
 import shapely.geometry
 import shapely.ops
 import skimage.draw
-##
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
-##
 try:
     from IPython.display import display
 except ImportError:

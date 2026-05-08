@@ -26,5 +26,6 @@ env/
 
 ## Local backup and test
 _backup/
+_defer/
 _old/
 _test/

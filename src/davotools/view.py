@@ -4,7 +4,6 @@
 # %%
 ## imports
 import pandas as pd
-##
 try:
     from IPython.display import display
 except ImportError:

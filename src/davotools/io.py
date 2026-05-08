@@ -8,12 +8,12 @@ import importlib.util
 import xml.etree.ElementTree
 ##
 import geojson
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import skimage.io
 import tifffile
 import yaml
+import skimage.io
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # %%
 
