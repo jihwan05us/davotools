@@ -4,7 +4,7 @@
 - io.py: parquet read/write support
 - pyproject.toml: pillow >> pyarrow dependency
 - __init__.py: removed load_image_old(); _set_path() now silent on import
-- io.py: write() expands ~ in path before makedirs
+- io.py: read/write expand ~ in path
 
 ##
 

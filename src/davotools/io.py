@@ -36,6 +36,7 @@ def read(
     Returns:
         data: (object) # data object read from the file
     """
+    path = os.path.expanduser(path)
     filename = path.split('/')[-1]
     if '.' not in filename:
         _msg = f"*** davotools.io.read(): no file extension in '{path}'"
