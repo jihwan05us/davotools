@@ -101,6 +101,7 @@ def write(
         **kwargs
     Returns: None
     """
+    path = os.path.expanduser(path)
     path_dir = os.path.dirname(path)
     if path_dir:
         os.makedirs(path_dir, exist_ok=True)
