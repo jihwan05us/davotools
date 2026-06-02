@@ -20,18 +20,85 @@ except ImportError:
 # %%
 
 # %% [markdown]
+## Body: thumbnail
+
+# %%
+## to stretch a 2d grayscale image array to uint8 for display
+def thumb(image: np.ndarray) -> np.ndarray:
+    """
+    a function to stretch a 2d grayscale image array to uint8 for display.
+    Uses 1st-99th percentile clipping. For multichannel images, use
+    thumb_rgb or thumb_multi instead.
+    Args:
+        image: np.ndarray # 2d input array of any numeric dtype
+    Returns:
+        out: np.ndarray # uint8 array with values in [0, 255]
+    """
+    ch = image.astype(float)
+    lo, hi = np.percentile(ch, [1, 99])
+    if hi == lo:
+        return np.zeros_like(ch, dtype=np.uint8)
+    return np.clip( (ch - lo) / (hi - lo) * 255, 0, 255 ).astype(np.uint8)
+
+# %%
+## to stretch an RGB image to uint8 for display, per channel
+def thumb_rgb(image: np.ndarray, channel_dim: int = 2) -> np.ndarray:
+    """
+    a function to stretch an RGB image to uint8 for display, per channel.
+    Applies thumb independently to each channel. RGB channel is typically
+    at the 3rd dimension (channel_dim=2), i.e. (H, W, 3).
+    Args:
+        image: np.ndarray # RGB array of any numeric dtype
+        channel_dim: int = 2 # axis along which channels are stored
+    Returns:
+        out: np.ndarray # uint8 array with same shape as input
+    """
+    n = image.shape[channel_dim]
+    channels = [
+        thumb( np.take(image, c, axis=channel_dim) )
+        for c in range(n)
+    ]
+    return np.stack(channels, axis=channel_dim)
+
+# %%
+## to stretch a multichannel image to uint8 for display, per channel
+def thumb_multi(image: np.ndarray, channel_dim: int = 0) -> np.ndarray:
+    """
+    a function to stretch a multichannel image to uint8 for display,
+    per channel. Applies thumb independently to each channel.
+    Multichannel images typically have channels at the 1st dimension
+    (channel_dim=0), i.e. (C, H, W).
+    Args:
+        image: np.ndarray # multichannel array of any numeric dtype
+        channel_dim: int = 0 # axis along which channels are stored
+    Returns:
+        out: np.ndarray # uint8 array with same shape as input
+    """
+    n = image.shape[channel_dim]
+    channels = [
+        thumb( np.take(image, c, axis=channel_dim) )
+        for c in range(n)
+    ]
+    return np.stack(channels, axis=channel_dim)
+
+# %%
+
+# %% [markdown]
 ## Body: annotation
 
 # %%
 ## to convert a geojson object into shapely objects
 def convert_geojson_to_shapely(
         G,
+        geo_types: list[str] | None = None,
 ) -> tuple[pd.DataFrame, dict]:
     """
     a function to convert a geojson object into shapely objects.
     Handles FeatureCollection, bare Feature, and bare geometry.
     Args:
         G # a geojson object imported by geojson.load()
+        geo_types: list[str] | None = None
+            # if provided, only features with matching geo_type are included
     Returns:
         info: pd.DataFrame # information of every annotation
         shapes: dict[int, shapely.geometry]
@@ -61,6 +128,8 @@ def convert_geojson_to_shapely(
         geo_type = (
             geo['type'] if geo is not None and 'type' in geo.keys() else None
         )
+        if geo_types is not None and geo_type not in geo_types:
+            continue
         ##
         prop_type = (
             prop['objectType']
