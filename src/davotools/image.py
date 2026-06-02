@@ -276,6 +276,7 @@ def convert_geojson_to_numpy(
         path: str,
         size: tuple[int, int] | None = None,
         multi: int | bool = True,
+        geo_types: list[str] | None = None,
 ) -> tuple[pd.DataFrame, np.ndarray]:
     """
     a function to convert a geojson file path into a numpy array (mask)
@@ -285,6 +286,8 @@ def convert_geojson_to_numpy(
             if None, auto-determined from polygon bounds
         multi: int | bool = True # bool to toggle multiprocessing;
             int to set cpu count (bool checked first as bool is subclass of int)
+        geo_types: list[str] | None = None
+            # if provided, only features with matching geo_type are included
     Returns:
         info: pd.DataFrame # information of every annotation
         mask: np.ndarray # integer mask (stores feat_index per pixel)
@@ -292,7 +295,7 @@ def convert_geojson_to_numpy(
     with open(path) as f:
         G = geojson.load(f)
     ##
-    info, shapes = convert_geojson_to_shapely(G)
+    info, shapes = convert_geojson_to_shapely(G, geo_types=geo_types)
     ##
     if size is None:
         union = shapely.ops.unary_union( list( shapes.values() ) )
