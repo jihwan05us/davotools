@@ -12,7 +12,10 @@ import os, types
 
 # %%
 ## davotools submodules
-from davotools import image, io, minor
+from davotools import image
+from davotools import io
+from davotools import minor
+from davotools import snapshot
 
 # %%
 ## davotools submodule: view

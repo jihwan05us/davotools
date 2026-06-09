@@ -6,7 +6,7 @@ requires = ["hatchling>=1.11"]
 
 [project]
 name = "davotools"
-description = "DAVOlatte's everyday TOOLS"
+description = "DavoLatte's Everyday Tools"
 classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.10",

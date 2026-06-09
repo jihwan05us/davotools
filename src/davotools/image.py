@@ -128,8 +128,9 @@ def convert_geojson_to_shapely(
         geo_type = (
             geo['type'] if geo is not None and 'type' in geo.keys() else None
         )
-        if geo_types is not None and geo_type not in geo_types:
-            continue
+        if geo_types is not None:
+            if geo_type not in geo_types:
+                continue
         ##
         prop_type = (
             prop['objectType']
