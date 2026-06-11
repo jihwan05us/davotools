@@ -17,7 +17,7 @@ authors = [
 maintainers = [
   { name="Jihwan Oh", email="jihwan05us@gmail.com" },
 ]
-version = "0.2.1"
+version = "0.3.0"
 requires-python = ">=3.10"
 dependencies = [
     "geojson",

@@ -1,14 +1,18 @@
 # The current version
 
+### 20260611 v0.3.0
+- snapshot.py: new module; scans a directory tree into a dated YAML snapshot file
+- __init__.py: import style fix (one submodule per line)
+
+##
+
+# Old versions of 2026
+
 ### 20260508 v0.2.1
 - io.py: parquet read/write support
 - pyproject.toml: pillow >> pyarrow dependency
 - __init__.py: removed load_image_old(); _set_path() now silent on import
 - io.py: read/write expand ~ in path
-
-##
-
-# Old versions of 2026
 
 ### 20260429 v0.2.0
 - image.py: robust geojson handling, merged shapely-to-numpy functions, bug fix in if/else structure
