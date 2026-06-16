@@ -1,12 +1,16 @@
 # The current version
 
-### 20260611 v0.3.0
-- snapshot.py: new module; scans a directory tree into a dated YAML snapshot file
-- __init__.py: import style fix (one submodule per line)
+### 20260616 v0.3.1
+- main-snapshot.py: new runnable script
+- snapshot.py: _files >> __files__; __cwd__ as first item
 
 ##
 
 # Old versions of 2026
+
+### 20260611 v0.3.0
+- snapshot.py: new module; scans a directory tree into a dated YAML snapshot file
+- __init__.py: import style fix (one submodule per line)
 
 ### 20260508 v0.2.1
 - io.py: parquet read/write support

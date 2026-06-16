@@ -3,9 +3,7 @@
 
 # %%
 ## imports
-import datetime, os
-##
-import yaml
+import os
 
 # %%
 
@@ -22,14 +20,14 @@ def scan(
     Args:
         path: str # path to the directory to scan
     Returns:
-        result: dict # nested dict; files listed under '_files' key
+        result: dict # nested dict; files listed under '__files__' key
     """
     result = {}
     entries = sorted( os.listdir(path) )
     files = [ e for e in entries if os.path.isfile( os.path.join(path, e) ) ]
     dirs = [ e for e in entries if os.path.isdir( os.path.join(path, e) ) ]
     if files:
-        result['_files'] = files
+        result['__files__'] = files
     for d in dirs:
         result[d] = scan( os.path.join(path, d) )
     return result
@@ -63,49 +61,6 @@ def _next_version(
     if not versions:
         return 1
     return max(versions) + 1
-
-# %%
-
-if __name__ == '__main__':
-
-    # %%
-    ## imports
-    import argparse
-
-    # %%
-    ## CLI
-    parser = argparse.ArgumentParser(
-        description="snapshot a directory tree into a YAML file" )
-    parser.add_argument(
-        'path', type=str, nargs='?', default=None,
-        help="directory to snapshot (default: current working directory)" )
-    CLI = vars( parser.parse_args() )
-
-    # %%
-    ## resolve path
-    if CLI['path'] is not None:
-        target = os.path.expanduser( CLI['path'] )
-    else:
-        target = os.getcwd()
-
-    # %%
-    ## build snapshot
-    date = datetime.datetime.now().strftime('%Y%m%d')
-    version = _next_version(target, date)
-    result = scan(target)
-
-    # %%
-    ## write
-    filename = f"snapshot--{date}-{version}.yaml"
-    out_path = os.path.join(target, filename)
-    with open(out_path, 'w') as f:
-        yaml.dump(
-            result, f,
-            default_flow_style=False,
-            allow_unicode=True,
-            sort_keys=False,
-        )
-    print(f"-. written: {out_path}")
 
 # %%
 
