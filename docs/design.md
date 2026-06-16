@@ -12,7 +12,7 @@ PANDA, and others) and centralizes them in one installable package so that each 
 can depend on a shared, versioned implementation rather than copying code between
 repositories.
 
-The package is organized into four submodules:
+The package is organized into five submodules:
 
 | Submodule | Contents |
 |---|---|
@@ -20,6 +20,7 @@ The package is organized into four submodules:
 | `davotools.view` | Quick terminal/Jupyter inspection of common data structures |
 | `davotools.image` | GeoJSON annotation processing and image patch generation |
 | `davotools.minor` | Small utilities: dict updating, elapsed-time tracking |
+| `davotools.snapshot` | Directory tree scanning and YAML snapshot generation |
 
 ---
 
@@ -29,7 +30,7 @@ The package is organized into four submodules:
 caller specifies only the file path; the format is inferred from the extension. This
 removes per-format boilerplate from pipeline scripts and ensures consistent handling
 of edge cases (directory creation, dtype validation, OME metadata for tiff) across
-all projects.
+all projects. Both `read` and `write` expand `~` in paths automatically.
 
 ### 2.1 `read`
 
@@ -57,18 +58,24 @@ Writes a Python object to a file. The same extension-driven dispatch as `read`.
 Output directories are created automatically. A timestamped log line is printed when
 `echo=True`.
 
+Supported write formats: `.pkl`, `.npy`, `.csv`, `.tsv`, `.feather`, `.parquet`,
+`.png`, `.jpg`/`.jpeg`, `.tiff`/`.tif`, `.json`, `.yaml`, `.geojson`.
+
 Additional behavior by format:
-- **tiff / tif**: writes multi-channel arrays in `CYX` OME-TIFF format; accepts an
-  optional `channel_names` list to embed channel metadata.
-- **jpg / jpeg**: raises an error if the array dtype is not `uint8` or `uint16`,
-  preventing silent precision loss.
+- **tiff / tif**: writes multi-channel arrays in `CYX` OME-TIFF format via
+  `_write_tiff`; accepts an optional `channel_names` list to embed channel metadata.
+  RGB/RGBA arrays in `YXC` layout are rejected — use jpg/png instead.
+- **jpg / jpeg**: raises `ValueError` if dtype is not `uint8` or `uint16`, preventing
+  silent precision loss.
 - **png**: uses `matplotlib.pyplot.imsave`, which supports float arrays and colormaps.
+- **json**: written with `indent=4`.
+- **yaml**: written with `default_flow_style=False`, `sort_keys=False`.
 
 ### 2.3 `import_module_from_code`
 
 Loads a Python source file at an arbitrary path and returns it as a live module
-object. This is useful for importing project-specific scripts (e.g., a panel config or
-a custom model definition) without installing them as packages.
+object. Useful for importing project-specific scripts (e.g., a panel config or a
+custom model definition) without installing them as packages.
 
 ```python
 cfg = davotools.io.import_module_from_code('config', '/path/to/config.py')
@@ -77,8 +84,13 @@ cfg = davotools.io.import_module_from_code('config', '/path/to/config.py')
 ### 2.4 `load_cli`
 
 Wraps `argparse.ArgumentParser.parse_args()` to work in both terminal and
-IPython/Jupyter contexts. In IPython, `parse_args("")` is called instead of
-`parse_args()` to avoid consuming Jupyter's internal argv. Returns a plain `dict`.
+IPython/Jupyter contexts. The caller passes the configured `parser` and an `in_IPy`
+boolean flag. When `in_IPy=True`, `parse_args("")` is called instead of `parse_args()`
+to avoid consuming Jupyter's internal argv. Returns a plain `dict`.
+
+```python
+cli = davotools.io.load_cli(parser, in_IPy=False)
+```
 
 ---
 
@@ -87,7 +99,8 @@ IPython/Jupyter contexts. In IPython, `parse_args("")` is called instead of
 `view` provides three quick-inspection functions for common container types. All three
 print a structured summary to the terminal (or Jupyter cell output via `IPython.display`
 if available). They are accessed as `davotools.view.list`, `davotools.view.dict`, and
-`davotools.view.pd` -- the module re-exports them under these shortened names.
+`davotools.view.pd` — the module re-exports them under these shortened names via
+`__init__.py`.
 
 An optional `k` argument labels the output with a keyword description.
 
@@ -99,21 +112,21 @@ of string lists (file paths, channel names, etc.).
 ### 3.2 `view.dict`
 
 Recursively traverses a nested dictionary and prints its structure with increasing
-indentation per depth level. Leaf values are printed alongside the type of their parent
-dict, which helps quickly identify the shape of complex config or result dicts.
+indentation per depth level. At depth 0 the bullet is `-.`; at deeper levels it is
+`*` repeated by depth. Leaf values are printed alongside their key.
 
 ### 3.3 `view.pd`
 
-Prints the type and shape of a DataFrame, then displays a sample (first two rows and
-last row by default). If the table has five or fewer rows, all rows are shown. An
-`iloc` argument accepts a custom list of row indices.
+Prints the type and shape of a DataFrame, then displays a sample. If the table has
+five or fewer rows, all rows are shown; otherwise rows at `iloc=[0, 1, -1]` are shown
+by default. An `iloc` argument accepts a custom list of row indices.
 
 ---
 
 ## 4. image
 
-`image` contains two groups of functions: annotation processing (GeoJSON to numpy mask)
-and patch coordinate generation.
+`image` contains two groups of functions: annotation processing (GeoJSON to numpy
+mask) and patch coordinate generation.
 
 ### 4.1 Annotation processing
 
@@ -129,27 +142,27 @@ for cases where the caller needs intermediate access to the shapely geometry obj
 High-level wrapper. Reads the file, calls the two steps below, and returns
 `(info, mask)`. If `size` is not provided, the mask dimensions are inferred from the
 bounding box of all polygon vertices. Multiprocessing is configurable via `multi`:
-`True` uses all CPUs minus one; an integer sets an explicit count; `False` runs
-single-threaded.
+`True` uses all CPUs minus one; an integer sets an explicit count; `False` or `1`
+runs single-threaded.
 
 #### `convert_geojson_to_shapely`
 
 Parses a GeoJSON object (FeatureCollection, bare Feature, or bare geometry) into a
-shapely geometry dict. Handles normalization so the caller does not need to inspect the
-GeoJSON type. Returns:
+shapely geometry dict. Returns:
 - `info`: DataFrame with one row per feature. Columns: `feat_index` (1-based),
   `feat_type`, `feat_id`, `geo_type`, `prop_type`, `prop_name`, `prop_class`.
 - `shapes`: dict mapping `feat_index` to `shapely.geometry` object.
 
 `prop_class` is read from `properties.classification.name`, which is the field
-QuPath writes for annotation classifications.
+QuPath writes for annotation classifications. An optional `geo_types` list filters
+features by geometry type before returning.
 
 #### `convert_shapely_to_numpy`
 
 Rasterizes a set of shapely geometries into an integer mask of shape `(H, W)`.
 Supports `Polygon` and `MultiPolygon`. Polygon holes (interior rings) are reset to
 background after the exterior is filled. When `cpu_max > 1`, rasterization is
-parallelized over features using `multiprocessing`.
+parallelized over features using `multiprocessing.get_context('fork').Pool`.
 
 ### 4.2 Patch coordinate generation
 
@@ -185,9 +198,6 @@ Returns a shallow copy of `orig` updated with values from `new`. When
 `ignore_none=True`, keys in `new` with `None` values are skipped, preserving the
 original value for those keys. The original dict is never modified.
 
-This is useful for merging default parameter dicts with caller-supplied overrides,
-especially when the caller may omit some keys by passing `None`.
-
 ### 5.2 `time_keep`
 
 A two-call timing utility. The first call (no argument) records and prints the start
@@ -196,10 +206,53 @@ records the end time, prints both the end time and the elapsed duration, and ret
 the end `datetime`.
 
 ```python
-t = davotools.minor.time_keep() # prints start time
+t = davotools.minor.time_keep()     # prints start time
 # ... work ...
-davotools.minor.time_keep(t) # prints end time and elapsed
+davotools.minor.time_keep(t)        # prints end time and elapsed
 ```
 
-`echo=False` suppresses all printing while still returning the datetime, useful for
-capturing timing in automated pipelines without cluttering stdout.
+`echo=False` suppresses all printing while still returning the datetime.
+
+---
+
+## 6. snapshot
+
+`snapshot` scans a directory tree into a nested dict and writes it as a dated YAML
+file. It is designed to be run via `main-snapshot.py` at the repo root, with the
+library functions available for import separately.
+
+### 6.1 `scan`
+
+Recursively scans a directory and returns a nested dict. Files at each level are
+listed under the `__files__` key; subdirectories become nested dict entries. Entries
+are sorted alphabetically at every level.
+
+### 6.2 `_next_version`
+
+Internal helper. Checks a directory for existing `snapshot--{date}-N.yaml` files and
+returns the next integer version (1-based). Used by `main-snapshot.py` to avoid
+overwriting existing snapshots on the same date.
+
+### 6.3 `main-snapshot.py`
+
+Runnable script at the repo root. Accepts an optional positional `path` argument
+(defaults to the current working directory). Writes a `snapshot--{date}-{version}.yaml`
+file inside the target directory. The YAML includes `__cwd__` as the first key
+followed by the nested directory tree.
+
+```bash
+python main-snapshot.py
+python main-snapshot.py /some/directory
+```
+
+Example output:
+
+```yaml
+__cwd__: /path/to/directory
+__files__:
+- file1.txt
+- file2.csv
+subdir:
+  __files__:
+  - nested.txt
+```
