@@ -2,9 +2,8 @@
 
 ### Purpose
 
-This package is intended to organize everyday tools (utility functions in Python),
-mostly for digital pathology research projects,
-of Jihwan Oh ('DavoLatte' is his WoW character name).
+Personal utility library for digital pathology research by Jihwan Oh.
+See [docs/abstract.md](docs/abstract.md).
 
 ### Installation
 
@@ -55,6 +54,7 @@ davotools.minor.time_keep
 
 ### Documentation
 
+- [docs/abstract.md](docs/abstract.md) -- package abstract
 - [docs/design.md](docs/design.md) -- high-level design and scientific background
 
 ### License
