@@ -24,25 +24,36 @@ except ImportError:
 
 # %%
 ## to stretch a 2d grayscale image array to uint8 for display
-def thumb(image: np.ndarray) -> np.ndarray:
+def thumb(image: np.ndarray, skip: int = 1) -> np.ndarray:
     """
     a function to stretch a 2d grayscale image array to uint8 for display.
     Uses 1st-99th percentile clipping. For multichannel images, use
     thumb_rgb or thumb_multi instead.
     Args:
         image: np.ndarray # 2d input array of any numeric dtype
+        skip: int = 1 # spatial downsampling stride; <=1 means no downsampling
     Returns:
         out: np.ndarray # uint8 array with values in [0, 255]
     """
+    if skip > 1:
+        image = image[::skip, ::skip]
     ch = image.astype(float)
     lo, hi = np.percentile(ch, [1, 99])
     if hi == lo:
-        return np.zeros_like(ch, dtype=np.uint8)
-    return np.clip( (ch - lo) / (hi - lo) * 255, 0, 255 ).astype(np.uint8)
+        out = np.zeros_like(ch, dtype=np.uint8)
+    else:
+        out = (ch - lo) / (hi - lo) * 255
+        out = np.clip(out, 0, 255)
+        out = out.astype(np.uint8)
+    return out
 
 # %%
 ## to stretch an RGB image to uint8 for display, per channel
-def thumb_rgb(image: np.ndarray, channel_dim: int = 2) -> np.ndarray:
+def thumb_rgb(
+        image: np.ndarray,
+        channel_dim: int = 2,
+        skip: int = 1,
+) -> np.ndarray:
     """
     a function to stretch an RGB image to uint8 for display, per channel.
     Applies thumb independently to each channel. RGB channel is typically
@@ -50,9 +61,14 @@ def thumb_rgb(image: np.ndarray, channel_dim: int = 2) -> np.ndarray:
     Args:
         image: np.ndarray # RGB array of any numeric dtype
         channel_dim: int = 2 # axis along which channels are stored
+        skip: int = 1 # spatial downsampling stride; <=1 means no downsampling
     Returns:
         out: np.ndarray # uint8 array with same shape as input
     """
+    if skip > 1:
+        slices = tuple( slice(None) if i == channel_dim else slice(None, None, skip)
+                        for i in range(image.ndim) )
+        image = image[slices]
     n = image.shape[channel_dim]
     channels = [
         thumb( np.take(image, c, axis=channel_dim) )
@@ -62,7 +78,11 @@ def thumb_rgb(image: np.ndarray, channel_dim: int = 2) -> np.ndarray:
 
 # %%
 ## to stretch a multichannel image to uint8 for display, per channel
-def thumb_multi(image: np.ndarray, channel_dim: int = 0) -> np.ndarray:
+def thumb_multi(
+        image: np.ndarray,
+        channel_dim: int = 0,
+        skip: int = 1,
+) -> np.ndarray:
     """
     a function to stretch a multichannel image to uint8 for display,
     per channel. Applies thumb independently to each channel.
@@ -71,9 +91,14 @@ def thumb_multi(image: np.ndarray, channel_dim: int = 0) -> np.ndarray:
     Args:
         image: np.ndarray # multichannel array of any numeric dtype
         channel_dim: int = 0 # axis along which channels are stored
+        skip: int = 1 # spatial downsampling stride; <=1 means no downsampling
     Returns:
         out: np.ndarray # uint8 array with same shape as input
     """
+    if skip > 1:
+        slices = tuple( slice(None) if i == channel_dim else slice(None, None, skip)
+                        for i in range(image.ndim) )
+        image = image[slices]
     n = image.shape[channel_dim]
     channels = [
         thumb( np.take(image, c, axis=channel_dim) )

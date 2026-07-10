@@ -18,7 +18,7 @@ The package is organized into five submodules:
 |---|---|
 | `davotools.io` | Reading and writing files in various formats |
 | `davotools.view` | Quick terminal/Jupyter inspection of common data structures |
-| `davotools.image` | GeoJSON annotation processing and image patch generation |
+| `davotools.image` | Thumbnail display, GeoJSON annotation processing, and image patch generation |
 | `davotools.minor` | Small utilities: dict updating, elapsed-time tracking |
 | `davotools.snapshot` | Directory tree scanning and YAML snapshot generation |
 
@@ -34,7 +34,7 @@ all projects. Both `read` and `write` expand `~` in paths automatically.
 
 ### 2.1 `read`
 
-Reads a file and returns a Python object. The extension determines the backend:
+Reads a file and returns a Python object. The extension determines the backend. An `echo` parameter (default `False`) prints the loaded path when `True`.
 
 | Extensions | Returns |
 |---|---|
@@ -59,7 +59,7 @@ Output directories are created automatically. A timestamped log line is printed 
 `echo=True`.
 
 Supported write formats: `.pkl`, `.npy`, `.csv`, `.tsv`, `.feather`, `.parquet`,
-`.png`, `.jpg`/`.jpeg`, `.tiff`/`.tif`, `.json`, `.yaml`, `.geojson`.
+`.png`, `.jpg`/`.jpeg`, `.tiff`/`.tif`, `.json`, `.yaml`/`.yml`, `.geojson`.
 
 Additional behavior by format:
 - **tiff / tif**: writes multi-channel arrays in `CYX` OME-TIFF format via
@@ -69,7 +69,8 @@ Additional behavior by format:
   silent precision loss.
 - **png**: uses `matplotlib.pyplot.imsave`, which supports float arrays and colormaps.
 - **json**: written with `indent=4`.
-- **yaml**: written with `default_flow_style=False`, `sort_keys=False`.
+- **yaml / yml**: written with `default_flow_style=False`, `sort_keys=False`.
+- **geojson**: `data` must be a pre-serialized string (e.g. the result of `geojson.dumps()`).
 
 ### 2.3 `import_module_from_code`
 
@@ -125,10 +126,31 @@ by default. An `iloc` argument accepts a custom list of row indices.
 
 ## 4. image
 
-`image` contains two groups of functions: annotation processing (GeoJSON to numpy
-mask) and patch coordinate generation.
+`image` contains three groups of functions: thumbnail display, annotation processing
+(GeoJSON to numpy mask), and patch coordinate generation.
 
-### 4.1 Annotation processing
+### 4.1 Thumbnail display
+
+Three functions for stretching image arrays to uint8 for display, using 1st–99th
+percentile clipping per channel. All accept a `skip` argument (default `1`) for
+spatial downsampling — `skip=10` returns every 10th pixel along each spatial axis.
+Values `<=1` mean no downsampling.
+
+#### `thumb`
+
+Stretches a 2D grayscale array to uint8.
+
+#### `thumb_rgb`
+
+Stretches an RGB array to uint8, per channel. Channel axis is specified via
+`channel_dim` (default `2`, i.e. `HWC` layout).
+
+#### `thumb_multi`
+
+Stretches a multichannel array to uint8, per channel. Channel axis is specified via
+`channel_dim` (default `0`, i.e. `CHW` layout).
+
+### 4.2 Annotation processing
 
 The typical entry point is `convert_geojson_to_numpy`, which reads a `.geojson` file
 and returns an integer mask array where each pixel holds the 1-based index of the
@@ -164,7 +186,7 @@ Supports `Polygon` and `MultiPolygon`. Polygon holes (interior rings) are reset 
 background after the exterior is filled. When `cpu_max > 1`, rasterization is
 parallelized over features using `multiprocessing.get_context('fork').Pool`.
 
-### 4.2 Patch coordinate generation
+### 4.3 Patch coordinate generation
 
 #### `generate_patch_coords`
 
@@ -225,7 +247,11 @@ library functions available for import separately.
 
 Recursively scans a directory and returns a nested dict. Files at each level are
 listed under the `__files__` key; subdirectories become nested dict entries. Entries
-are sorted alphabetically at every level.
+are sorted alphabetically at every level. An optional `exclude` list (default `['_backup', '_defer', '_old', '_test']`)
+marks matching directories as present (empty dict) but does not recurse into them.
+Pass `None` to disable all exclusions. An optional `depth` integer limits recursion
+to N levels deep; directories at the depth limit appear as empty dicts. Default
+`None` means unlimited depth.
 
 ### 6.2 `_next_version`
 
@@ -243,6 +269,9 @@ followed by the nested directory tree.
 ```bash
 python main-snapshot.py
 python main-snapshot.py /some/directory
+python main-snapshot.py --exclude .git __pycache__
+python main-snapshot.py --depth 3
+python main-snapshot.py /some/directory --exclude .git --depth 2
 ```
 
 Example output:

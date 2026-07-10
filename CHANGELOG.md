@@ -1,12 +1,19 @@
 # The current version
 
-### 20260616 v0.3.1
-- main-snapshot.py: new runnable script
-- snapshot.py: _files >> __files__; __cwd__ as first item
+### 20260710 v0.4.0
+- image.py: thumb, thumb_rgb, thumb_multi — new; skip parameter for downsampling
+- snapshot.py: scan() — exclude and depth parameters added
+- main-snapshot.py: --exclude and --depth CLI arguments added
+- io.py: .yml write support; os.path extension parsing; yaml kwargs guard; error message fix
+- __init__.py: _set_path() removed
 
 ##
 
 # Old versions of 2026
+
+### 20260616 v0.3.1
+- main-snapshot.py: new runnable script
+- snapshot.py: _files >> __files__; __cwd__ as first item
 
 ### 20260611 v0.3.0
 - snapshot.py: new module; scans a directory tree into a dated YAML snapshot file

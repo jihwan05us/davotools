@@ -37,11 +37,12 @@ def read(
         data: (object) # data object read from the file
     """
     path = os.path.expanduser(path)
-    filename = path.split('/')[-1]
-    if '.' not in filename:
+    filename = os.path.basename(path)
+    _, ext = os.path.splitext(filename)
+    if not ext:
         _msg = f"*** davotools.io.read(): no file extension in '{path}'"
         raise ValueError(_msg)
-    extension = filename.split('.')[-1]
+    extension = ext.lstrip('.')
     ##
     if extension == 'pkl':
         with open(path, 'rb') as f:
@@ -69,6 +70,9 @@ def read(
         with open(path, 'r') as f:
             data = json.load(f, **kwargs)
     elif extension in ['yaml', 'yml']:
+        if kwargs:
+            _msg = "*** davotools.io.read(): yaml/yml does not support kwargs."
+            raise ValueError(_msg)
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
     elif extension == 'geojson':
@@ -107,11 +111,12 @@ def write(
     if path_dir:
         os.makedirs(path_dir, exist_ok=True)
     ##
-    file = path.split('/')[-1]
-    if '.' not in file:
+    file = os.path.basename(path)
+    _, ext = os.path.splitext(file)
+    if not ext:
         _msg = f"*** davotools.io.write(): no file extension in '{path}'"
         raise ValueError(_msg)
-    extension = file.split('.')[-1]
+    extension = ext.lstrip('.')
     ##
     if extension == 'pkl':
         with open(path, 'wb') as f:
@@ -145,7 +150,7 @@ def write(
     elif extension == 'json':
         with open(path, 'w') as f:
             json.dump(data, f, indent=4, **kwargs)
-    elif extension == 'yaml':
+    elif extension in ['yaml', 'yml']:
         with open(path, 'w') as f:
             yaml.dump(data, f, default_flow_style=False, sort_keys=False)
     elif extension == 'geojson':
@@ -213,7 +218,7 @@ def import_module_from_code(
         module: types.ModuleType
     """
     if not os.path.exists(path):
-        _msg = f"*** davotools.module.import_module_from_code(): no such {path}"
+        _msg = f"*** davotools.io.import_module_from_code(): no such {path}"
         raise ValueError(_msg)
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)

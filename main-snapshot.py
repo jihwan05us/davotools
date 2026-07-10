@@ -21,6 +21,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     'path', type=str, nargs='?', default=None,
     help="directory to snapshot (default: current working directory)" )
+parser.add_argument(
+    '--exclude', type=str, nargs='*',
+    default=['_backup', '_defer', '_old', '_test'],
+    help="dir names to include but not recurse into" )
+parser.add_argument(
+    '--depth', type=int, default=None,
+    help="max recursion depth (default: unlimited)" )
 CLI = vars( parser.parse_args() )
 
 # %%
@@ -34,7 +41,7 @@ else:
 ## build snapshot
 date = datetime.datetime.now().strftime('%Y%m%d')
 version = davotools.snapshot._next_version(target, date)
-result = davotools.snapshot.scan(target)
+result = davotools.snapshot.scan(target, exclude=CLI['exclude'], depth=CLI['depth'])
 result = { '__cwd__': target, **result }
 
 # %%

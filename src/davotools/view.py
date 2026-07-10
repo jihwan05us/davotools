@@ -31,8 +31,6 @@ def view_list(
         print(f"-. {k}")
     for v in l:
         print(f"* {v}")
-    ##
-    return None
 
 # %%
 ## to view a dict
@@ -64,8 +62,6 @@ def view_dict(
                 print(f"{bullet} {k}")
         for k1, d1 in d.items():
             view_dict(d1, k1, i+1)
-    ##
-    return None
 
 # %%
 ## to view a pandas table
@@ -91,8 +87,6 @@ def view_pd(
         display( table.iloc[iloc] )
     else:
         display(table)
-    ##
-    return None
 
 # %%
 

@@ -9,7 +9,7 @@ name = "davotools"
 description = "DavoLatte's Everyday Tools"
 classifiers = [
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 authors = [
   { name="Jihwan Oh", email="jihwan05us@gmail.com" },
@@ -17,8 +17,8 @@ authors = [
 maintainers = [
   { name="Jihwan Oh", email="jihwan05us@gmail.com" },
 ]
-version = "0.3.1"
-requires-python = ">=3.10"
+version = "0.4.0"
+requires-python = ">=3.11"
 dependencies = [
     "geojson",
     "ipython",

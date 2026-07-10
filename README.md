@@ -40,16 +40,21 @@ davotools.view.dict
 davotools.view.pd
 
 ## image analysis tools
+davotools.image.thumb
+davotools.image.thumb_rgb
+davotools.image.thumb_multi
 davotools.image.convert_geojson_to_numpy
 davotools.image.convert_geojson_to_shapely
 davotools.image.convert_shapely_to_numpy
-davotools.image.convert_multi_shapely_to_numpy
 davotools.image.generate_patch_coords
 davotools.image.generate_subinterval_1d_centered
 
 ## minor tools
 davotools.minor.update_dict
 davotools.minor.time_keep
+
+## snapshot tools
+davotools.snapshot.scan
 ```
 
 ### Documentation
