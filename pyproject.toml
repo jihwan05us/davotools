@@ -22,7 +22,6 @@ requires-python = ">=3.11"
 dependencies = [
     "geojson",
     "ipython",
-    "matplotlib",
     "numpy",
     "pandas",
     "pyarrow",
@@ -30,6 +29,7 @@ dependencies = [
     "scikit-image",
     "shapely",
     "tifffile",
+    "zarr",
     "tqdm",
 ]
 readme = "README.md"

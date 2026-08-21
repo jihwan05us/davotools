@@ -9,11 +9,11 @@ import xml.etree.ElementTree
 ##
 import geojson
 import tifffile
+import zarr
 import yaml
 import skimage.io
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # %%
 
@@ -32,6 +32,7 @@ def read(
     Args:
         path: str # a path of the data file
         echo: bool = False # whether to print internal details
+        lazy: bool = False # (kwargs) if True, return a zarr array (tiff/tif/qptiff only)
         **kwargs
     Returns:
         data: (object) # data object read from the file
@@ -64,7 +65,12 @@ def read(
     elif extension in ['jpg', 'jpeg', 'png']:
         data = skimage.io.imread(path, **kwargs)
     elif extension in ['tiff', 'tif', 'qptiff']:
-        data = tifffile.imread(path, **kwargs)
+        if kwargs.pop('lazy', False):
+            store = tifffile.imread(path, aszarr=True)
+            z = zarr.open(store, mode='r')
+            data = z if hasattr(z, 'shape') else z['0']
+        else:
+            data = tifffile.imread(path, **kwargs)
     ##
     elif extension == 'json':
         with open(path, 'r') as f:
@@ -128,13 +134,15 @@ def write(
         data.to_csv(path, **kwargs)
     elif extension == 'tsv':
         data.to_csv(path, sep='\t', **kwargs)
+    elif extension == 'xlsx':
+        data.to_excel(path, **kwargs)
     elif extension == 'feather':
         data.to_feather(path, **kwargs)
     elif extension == 'parquet':
         data.to_parquet(path, **kwargs)
     ##
     elif extension == 'png':
-        plt.imsave(path, data, **kwargs)
+        skimage.io.imsave(path, data, check_contrast=False, **kwargs)
     elif extension in ['jpeg', 'jpg']:
         if isinstance(data, np.ndarray) and data.dtype not in [
             np.uint8, np.uint16
@@ -172,31 +180,42 @@ def _write_tiff(
         path: str,
         image: np.ndarray,
         channel_names: list[str] | None = None,
+        dim_C: int = 0,
         **kwargs
 ) -> None:
     """
-    a function to write an image file (.tiff)
+    an internal function to write an image file (.tiff)
     Args:
         path: str # output path
-        image: np.ndarray # image array (CYX for multi-channel, YX for single)
+        image: np.ndarray # image array
         channel_names: list[str] | None = None # channel names for OME metadata
+        dim_C: int = 0 # channel dimension index for 3D arrays;
+            0 = CYX (default), 2 = YXC (RGB/RGBA); ignored for 2D arrays
     Returns: None
     """
-    if len(image.shape) == 3 and image.shape[2] in [3, 4]:
-        _msg = "*** davotools.io._write_tiff(): RGB/RGBA images (YXC)"
-        _msg += " are not supported. Use jpg/png instead."
-        raise ValueError(_msg)
-    if len(image.shape) > 2:
+    # tile=(512,512): matches scanner qptiff tile size
+    if len(image.shape) == 2:
+        tifffile.imwrite(path, image, tile=(512, 512), **kwargs)
+    elif len(image.shape) == 3:
+        if dim_C == 0:
+            axes = 'CYX'
+        elif dim_C == 2:
+            axes = 'YXC'
+        else:
+            _msg = f"*** davotools.io._write_tiff(): dim_C={dim_C} not supported."
+            _msg += " Use 0 (CYX) or 2 (YXC)."
+            raise ValueError(_msg)
         if channel_names is None:
-            tifffile.imwrite( path, image, metadata={
-                'axes': 'CYX',
+            tifffile.imwrite( path, image, tile=(512, 512), metadata={
+                'axes': axes,
             }, ome=True, **kwargs )
         else:
-            tifffile.imwrite( path, image, metadata={
-                'axes': 'CYX', 'Channel': {'Name': channel_names},
+            tifffile.imwrite( path, image, tile=(512, 512), metadata={
+                'axes': axes, 'Channel': {'Name': channel_names},
             }, ome=True, **kwargs )
     else:
-        tifffile.imwrite(path, image, **kwargs)
+        _msg = "*** davotools.io._write_tiff(): only 2D and 3D arrays are supported."
+        raise ValueError(_msg)
 
 # %%
 
