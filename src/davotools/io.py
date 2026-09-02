@@ -195,7 +195,7 @@ def _write_tiff(
     """
     # tile=(512,512): matches scanner qptiff tile size
     if len(image.shape) == 2:
-        tifffile.imwrite(path, image, tile=(512, 512), **kwargs)
+        metadata = {'axes': 'YX'}
     elif len(image.shape) == 3:
         if dim_C == 0:
             axes = 'CYX'
@@ -205,17 +205,13 @@ def _write_tiff(
             _msg = f"*** davotools.io._write_tiff(): dim_C={dim_C} not supported."
             _msg += " Use 0 (CYX) or 2 (YXC)."
             raise ValueError(_msg)
-        if channel_names is None:
-            tifffile.imwrite( path, image, tile=(512, 512), metadata={
-                'axes': axes,
-            }, ome=True, **kwargs )
-        else:
-            tifffile.imwrite( path, image, tile=(512, 512), metadata={
-                'axes': axes, 'Channel': {'Name': channel_names},
-            }, ome=True, **kwargs )
+        metadata = {'axes': axes}
+        if channel_names is not None:
+            metadata['Channel'] = {'Name': channel_names}
     else:
         _msg = "*** davotools.io._write_tiff(): only 2D and 3D arrays are supported."
         raise ValueError(_msg)
+    tifffile.imwrite(path, image, tile=(512, 512), metadata=metadata, ome=True, **kwargs)
 
 # %%
 
