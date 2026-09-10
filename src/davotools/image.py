@@ -6,6 +6,8 @@
 import math, multiprocessing, os
 ##
 import geojson
+import rasterio.features
+import rasterio.transform
 import shapely.geometry
 import shapely.ops
 import skimage.draw
@@ -247,6 +249,7 @@ def convert_shapely_to_numpy(
         info: pd.DataFrame,
         shapes: dict,
         cpu_max: int | None = None,
+        backend: str = 'rasterio',
 ) -> np.ndarray:
     """
     a function to convert shapely objects into a numpy array (mask)
@@ -254,12 +257,30 @@ def convert_shapely_to_numpy(
         size: tuple[int, int] # the size of the mask (H, W)
         info: pd.DataFrame # output from convert_geojson_to_shapely
         shapes: dict # output from convert_geojson_to_shapely
-        cpu_max: int | None = None # max cpu cores; None or 1 = single-core
+        cpu_max: int | None = None # max cpu cores; None or 1 = single-core (skimage only)
+        backend: str = 'rasterio' # 'rasterio' or 'skimage'
     Returns:
         mask: np.ndarray # integer mask (stores feat_index per pixel)
     """
-    mask = np.zeros(size, dtype=np.int32)
+    if backend == 'rasterio':
+        geom_val_pairs = [
+            (shapes[row['feat_index']], int(row['feat_index']))
+            for _, row in info.iterrows()
+        ]
+        if len(geom_val_pairs) == 0:
+            return np.zeros(size, dtype=np.int32)
+        transform = rasterio.transform.from_bounds(
+            0, 0, size[1], size[0], size[1], size[0]
+        )
+        mask = rasterio.features.rasterize(
+            geom_val_pairs,
+            out_shape=size,
+            transform=transform,
+            dtype=np.int32,
+        )
+        return mask
     ##
+    mask = np.zeros(size, dtype=np.int32)
     if cpu_max is None or cpu_max <= 1:
         ITER = tqdm( info.iterrows(), total=info.shape[0], ncols=70 )
         for _, info_row in ITER:
@@ -303,6 +324,7 @@ def convert_geojson_to_numpy(
         size: tuple[int, int] | None = None,
         multi: int | bool = True,
         geo_types: list[str] | None = None,
+        **kwargs,
 ) -> tuple[pd.DataFrame, np.ndarray]:
     """
     a function to convert a geojson file path into a numpy array (mask)
@@ -314,6 +336,7 @@ def convert_geojson_to_numpy(
             int to set cpu count (bool checked first as bool is subclass of int)
         geo_types: list[str] | None = None
             # if provided, only features with matching geo_type are included
+        **kwargs: any # passed to convert_shapely_to_numpy (e.g. backend='skimage')
     Returns:
         info: pd.DataFrame # information of every annotation
         mask: np.ndarray # integer mask (stores feat_index per pixel)
@@ -335,7 +358,7 @@ def convert_geojson_to_numpy(
     else:
         _msg = "*** the core count for multiprocessing is not well defined"
         raise ValueError(_msg)
-    mask = convert_shapely_to_numpy(size, info, shapes, cpu_max)
+    mask = convert_shapely_to_numpy(size, info, shapes, cpu_max, **kwargs)
     ##
     return info, mask
 

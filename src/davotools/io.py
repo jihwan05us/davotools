@@ -193,7 +193,6 @@ def _write_tiff(
             0 = CYX (default), 2 = YXC (RGB/RGBA); ignored for 2D arrays
     Returns: None
     """
-    # tile=(512,512): matches scanner qptiff tile size
     if len(image.shape) == 2:
         metadata = {'axes': 'YX'}
     elif len(image.shape) == 3:
