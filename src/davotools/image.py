@@ -269,13 +269,10 @@ def convert_shapely_to_numpy(
         ]
         if len(geom_val_pairs) == 0:
             return np.zeros(size, dtype=np.int32)
-        transform = rasterio.transform.from_bounds(
-            0, 0, size[1], size[0], size[1], size[0]
-        )
         mask = rasterio.features.rasterize(
             geom_val_pairs,
             out_shape=size,
-            transform=transform,
+            transform=rasterio.transform.Affine(1, 0, 0, 0, 1, 0),
             dtype=np.int32,
         )
         return mask
